@@ -30,95 +30,93 @@
         }
 
         body {
-    background: var(--bg-primary);
-    color: var(--neon-green);
-    font-family: 'Courier New', monospace;
-    min-height: 100vh;
-    overflow-x: hidden;
-    padding: 10px;
-    /* 🔥 REMOVED: -webkit-user-select: none; user-select: none; */
-}
+            background: var(--bg-primary);
+            color: var(--neon-green);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 10px;
+        }
 
-/* ===== ALLOW TEXT SELECTION ON RESULTS & HITS ===== */
-.result-item, .hit-item, .result-item *, .hit-item *,
-#quickResultsList, #massResultsList, #hitsListContainer,
-.result-item span, .hit-item span, .hit-card, .hit-details,
-.debug-content, .debug-content *,
-.table-container, .table-container *,
-#recentHitsBody, #recentHitsBody *,
-.list-item-row, .list-item-row *,
-.list-container, .list-container *,
-.log-entry, .log-entry *,
-.hit-info, .hit-info * {
-    -webkit-user-select: text !important;
-    user-select: text !important;
-    cursor: text;
-}
+        /* ===== ALLOW TEXT SELECTION ON RESULTS & HITS ===== */
+        .result-item, .hit-item, .result-item *, .hit-item *,
+        #quickResultsList, #massResultsList, #hitsListContainer,
+        .result-item span, .hit-item span, .hit-card, .hit-details,
+        .debug-content, .debug-content *,
+        .table-container, .table-container *,
+        #recentHitsBody, #recentHitsBody *,
+        .list-item-row, .list-item-row *,
+        .list-container, .list-container *,
+        .log-entry, .log-entry *,
+        .hit-info, .hit-info * {
+            -webkit-user-select: text !important;
+            user-select: text !important;
+            cursor: text;
+        }
 
-/* ===== PREVENT SELECTION ON BUTTONS (keep buttons clean) ===== */
-.btn, .btn *, .nav-item, .nav-item *,
-.progress-filter-btn, .hit-filter-btn,
-.debug-toggle, .debug-buttons .btn,
-.btn-icon, .btn-icon *,
-.confirm-box .btn, .confirm-box .btn * {
-    -webkit-user-select: none !important;
-    user-select: none !important;
-    cursor: pointer;
-}
+        /* ===== PREVENT SELECTION ON BUTTONS (keep buttons clean) ===== */
+        .btn, .btn *, .nav-item, .nav-item *,
+        .progress-filter-btn, .hit-filter-btn,
+        .debug-toggle, .debug-buttons .btn,
+        .btn-icon, .btn-icon *,
+        .confirm-box .btn, .confirm-box .btn * {
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            cursor: pointer;
+        }
 
-/* Keep header stats non-selectable */
-.stats-bar, .stats-bar *,
-.logo-section, .logo-section * {
-    -webkit-user-select: none !important;
-    user-select: none !important;
-}
+        /* Keep header stats non-selectable */
+        .stats-bar, .stats-bar *,
+        .logo-section, .logo-section * {
+            -webkit-user-select: none !important;
+            user-select: none !important;
+        }
 
-/* Allow selection in textareas */
-textarea {
-    -webkit-user-select: text !important;
-    user-select: text !important;
-}
+        /* Allow selection in textareas */
+        textarea {
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
 
-/* ===== REST OF YOUR CSS (keep everything else the same) ===== */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-secondary); }
-::-webkit-scrollbar-thumb { background: var(--neon-green); border-radius: 4px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--neon-green); border-radius: 4px; }
 
-.app-container { max-width: 1600px; margin: 0 auto; }
+        .app-container { max-width: 1600px; margin: 0 auto; }
 
-.header {
-    background: var(--bg-secondary);
-    border: 2px solid var(--neon-green);
-    border-radius: 12px;
-    padding: 12px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    box-shadow: 0 0 40px var(--shadow-glow);
-    margin-bottom: 12px;
-}
+        .header {
+            background: var(--bg-secondary);
+            border: 2px solid var(--neon-green);
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 0 40px var(--shadow-glow);
+            margin-bottom: 12px;
+        }
 
-.logo-section {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-}
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
 
-.logo-section .logo-top {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+        .logo-section .logo-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-.logo-section h1 {
-    font-size: 1.6rem;
-    color: var(--neon-green);
-    text-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
-    animation: glitch 3s infinite;
-}
+        .logo-section h1 {
+            font-size: 1.6rem;
+            color: var(--neon-green);
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+            animation: glitch 3s infinite;
+        }
 
         @keyframes glitch {
             0%, 100% { opacity: 1; }
@@ -1042,10 +1040,9 @@ textarea {
                     <div class="dashboard-grid">
                         <div class="dash-card"><h3>Charged</h3><div class="number" id="dashCharged">0</div><div class="label">cards charged</div></div>
                         <div class="dash-card"><h3>Approved</h3><div class="number orange" id="dashApproved">0</div><div class="label">approved cards</div></div>
-                        <div class="dash-card"><h3>Total Hits</h3><div class="number blue" id="dashTotal">0</div><div class="label">total results</div></div>
+                        <div class="dash-card"><h3>Total Hits</h3><div class="number blue" id="dashTotal">0</div><div class="label">charged + approved</div></div>
                         <div class="dash-card"><h3>Sites</h3><div class="number" id="dashSites">0</div><div class="label">live gateways</div></div>
                         <div class="dash-card"><h3>Proxies</h3><div class="number orange" id="dashProxies">0</div><div class="label">live proxies</div></div>
-                        <div class="dash-card"><h3>Declined</h3><div class="number red" id="dashDeclined">0</div><div class="label">declined cards</div></div>
                     </div>
                     <div style="margin-top:15px;">
                         <h3 style="color:var(--text-gray); font-size:0.8rem;">📋 Recent Hits</h3>
@@ -1421,7 +1418,7 @@ textarea {
             charged: $('chargedCount'), approved: $('approvedCount'), totalHits: $('totalHits'),
             siteCount: $('siteCount'), proxyCount: $('proxyCount'),
             dashCharged: $('dashCharged'), dashApproved: $('dashApproved'), dashTotal: $('dashTotal'),
-            dashSites: $('dashSites'), dashProxies: $('dashProxies'), dashDeclined: $('dashDeclined'),
+            dashSites: $('dashSites'), dashProxies: $('dashProxies'),
             quickCards: $('quickCards'), quickCheckBtn: $('quickCheckBtn'), quickClearBtn: $('quickClearBtn'),
             quickPauseBtn: $('quickPauseBtn'), quickResumeBtn: $('quickResumeBtn'), quickStopBtn: $('quickStopBtn'),
             quickResultsList: $('quickResultsList'), quickStatus: $('quickStatus'), quickProgressText: $('quickProgressText'),
@@ -1476,24 +1473,25 @@ textarea {
 
         // ===== UPDATE STATS =====
         function updateStats() {
+            const totalHits = state.charged + state.approved;
+            
             els.charged.textContent = state.charged;
             els.approved.textContent = state.approved;
-            els.totalHits.textContent = state.totalHits;
+            els.totalHits.textContent = totalHits;
             els.siteCount.textContent = state.sites.length;
             els.proxyCount.textContent = state.proxies.length;
             els.dashCharged.textContent = state.charged;
             els.dashApproved.textContent = state.approved;
-            els.dashTotal.textContent = state.totalHits;
+            els.dashTotal.textContent = totalHits;
             els.dashSites.textContent = state.sites.length;
             els.dashProxies.textContent = state.proxies.length;
-            els.dashDeclined.textContent = state.declined;
             els.siteTotalDisplay.textContent = state.sites.length;
             els.siteLiveDisplay.textContent = state.sites.length;
             els.siteDeadDisplay.textContent = 0;
             els.proxyTotalDisplay.textContent = state.proxies.length;
             els.proxyLiveDisplay.textContent = state.proxies.length;
             els.proxyDeadDisplay.textContent = 0;
-            els.hitTotalDisplay.textContent = state.totalHits;
+            els.hitTotalDisplay.textContent = totalHits;
             saveState();
         }
 
@@ -2806,61 +2804,65 @@ textarea {
             els.manualSites.value = '';
         });
 
-        els.checkSitesBtn.addEventListener('click', async function() {
-            if (state.sites.length === 0) { alert('No sites to check!'); return; }
-            if (state.proxies.length === 0) { alert('❌ No proxies available!'); return; }
+        // 🔥 FIXED: Check sites and remove dead ones IMMEDIATELY
+       els.checkSitesBtn.addEventListener('click', async function() {
+    if (state.sites.length === 0) { alert('No sites to check!'); return; }
+    if (state.proxies.length === 0) { alert('❌ No proxies available!'); return; }
 
-            this.disabled = true;
-            this.textContent = '⏳ Checking...';
-            els.siteCheckProgress.style.display = 'block';
+    this.disabled = true;
+    this.textContent = '⏳ Checking...';
+    els.siteCheckProgress.style.display = 'block';
 
-            const total = state.sites.length;
-            let checked = 0, alive = 0, dead = 0;
-            const aliveSites = [];
+    const total = state.sites.length;
+    let checked = 0, alive = 0, dead = 0;
+    
+    // 🔥 FIX: Loop BACKWARDS so we can remove from the SAME list safely
+    for (let i = state.sites.length - 1; i >= 0; i--) {
+        const site = state.sites[i];
+        const siteUrl = typeof site === 'object' ? site.url : site;
+        const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
+        const result = await testSiteWithPrice(siteUrl, proxy);
+        
+        checked++;
+        
+        if (result.status === 'alive') {
+            alive++;
+            // ✅ Site is alive - keep it in the list (do nothing)
+        } else {
+            dead++;
+            // 🔥 IMMEDIATELY REMOVE the dead site from the SAME list
+            state.sites.splice(i, 1);
+            renderSites();   // Update UI immediately
+            updateStats();    // Update stats immediately
+        }
+        
+        const pct = Math.round((checked / total) * 100);
+        els.siteCheckStatus.textContent = pct + '%';
+        els.siteCheckFill.style.width = pct + '%';
+        els.siteCheckChecked.textContent = checked;
+        els.siteCheckAlive.textContent = alive;
+        els.siteCheckDead.textContent = dead;
+        els.siteCheckTotal.textContent = total;
+        await new Promise(r => setTimeout(r, 30));
+    }
 
-            for (const site of state.sites) {
-                const siteUrl = typeof site === 'object' ? site.url : site;
-                const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
-                const result = await testSiteWithPrice(siteUrl, proxy);
-                if (result.status === 'alive') {
-                    aliveSites.push({ 
-                        url: siteUrl, 
-                        status: 'ALIVE', 
-                        price: result.price ? result.price.toFixed(2) : '0.00',
-                        added: new Date().toLocaleDateString()
-                    });
-                    alive++;
-                } else {
-                    dead++;
-                }
-                checked++;
-                const pct = Math.round((checked / total) * 100);
-                els.siteCheckStatus.textContent = pct + '%';
-                els.siteCheckFill.style.width = pct + '%';
-                els.siteCheckChecked.textContent = checked;
-                els.siteCheckAlive.textContent = alive;
-                els.siteCheckDead.textContent = dead;
-                els.siteCheckTotal.textContent = total;
-                await new Promise(r => setTimeout(r, 30));
-            }
+    // Final update - state.sites already has only alive sites
+    renderSites();
+    updateStats();
 
-            state.sites = aliveSites;
-            renderSites();
-            updateStats();
+    els.siteCheckStatus.textContent = '✅ Complete!';
+    els.siteCheckFill.style.width = '100%';
+    setTimeout(() => {
+        els.siteCheckProgress.style.display = 'none';
+        els.siteCheckStatus.textContent = '0%';
+        els.siteCheckFill.style.width = '0%';
+    }, 3000);
 
-            els.siteCheckStatus.textContent = '✅ Complete!';
-            els.siteCheckFill.style.width = '100%';
-            setTimeout(() => {
-                els.siteCheckProgress.style.display = 'none';
-                els.siteCheckStatus.textContent = '0%';
-                els.siteCheckFill.style.width = '0%';
-            }, 3000);
-
-            this.disabled = false;
-            this.textContent = '🔍 Check & Remove Dead';
-            logDebug(`✅ Site check: ${alive} alive, ${dead} removed`, 'success');
-            alert(`✅ Done! ${alive} sites alive, ${dead} removed.`);
-        });
+    this.disabled = false;
+    this.textContent = '🔍 Check & Remove Dead';
+    logDebug(`✅ Site check: ${alive} alive, ${dead} removed from original list`, 'success');
+    alert(`✅ Done! ${alive} sites alive, ${dead} removed from your list.`);
+});
 
         els.clearSitesBtn.addEventListener('click', function() {
             if (state.sites.length === 0) { alert('No sites to clear'); return; }
@@ -3094,6 +3096,9 @@ textarea {
         logDebug(`🔑 API Key: ${CONFIG.CHECKER_API_KEY}`, 'info');
         logDebug(`🔌 Default Proxy: ${CONFIG.DEFAULT_PROXY.substring(0, 30)}...`, 'info');
         logDebug(`✅ Fixed: site.startsWith error handled`, 'success');
+        logDebug(`✅ Dashboard Total = Charged + Approved`, 'success');
+        logDebug(`✅ Declined removed from Dashboard`, 'success');
+        logDebug(`✅ Sites removed IMMEDIATELY during check`, 'success');
 
         // Show debug by default
         toggleDebug();
@@ -3104,6 +3109,9 @@ textarea {
         console.log('🔌 Proxies:', state.proxies.length);
         console.log('🎯 Hits:', state.hits.length);
         console.log('✅ site.startsWith FIXED!');
+        console.log('✅ Dashboard Total = Charged + Approved');
+        console.log('✅ Declined removed from Dashboard');
+        console.log('✅ Sites removed IMMEDIATELY during check');
     </script>
 
 </body>
