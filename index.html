@@ -2280,7 +2280,7 @@
                 const results = await Promise.all(batch.map(async (line) => {
                     const cardData = parseCardLine(line);
                     if (!cardData) return null;
-                    const result = await checkCardWithRetry(cardData.raw, 2);
+                    const result = await checkCardWithRetry(cardData.raw, 3);
                     if (result.card && !result.card.includes('|')) {
                         const parts = result.card.split('|');
                         if (parts.length === 4) result.card = parts[0];
@@ -2478,7 +2478,7 @@
                 const results = await Promise.all(batch.map(async (line) => {
                     const cardData = parseCardLine(line);
                     if (!cardData) return null;
-                    const result = await checkCardWithRetry(cardData.raw, 2);
+                    const result = await checkCardWithRetry(cardData.raw, 3);
                     if (result.card && !result.card.includes('|')) {
                         const parts = result.card.split('|');
                         if (parts.length === 4) result.card = parts[0];
