@@ -2106,7 +2106,7 @@
         // ================================================================
         // 🔥 FIXED: CHECK CARD WITH RETRY - Handles objects
         // ================================================================
-        async function checkCardWithRetry(card, maxRetries = 2) {
+        async function checkCardWithRetry(card, maxRetries = 3) {
             if (state.sites.length === 0) {
                 logDebug(`❌ No sites available for ${maskCard(card)}`, 'error');
                 return { status: 'Site Error', message: 'No sites available', card: card };
