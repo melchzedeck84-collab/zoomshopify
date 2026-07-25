@@ -1628,61 +1628,56 @@
 
         // ===== RENDER SITES =====
         function renderSites() {
-            if (state.sites.length === 0) {
-                els.siteList.innerHTML = '<div class="list-item" style="color:var(--text-dim);">No sites uploaded yet</div>';
-                els.liveSiteCount.textContent = '0';
-                return;
-            }
-            
-            let html = `
-                <div class="list-header">
-                    <span class="col-num">#</span>
-                    <span class="col-left">Site URL</span>
-                    <span class="col-right">
-                        <span class="h-status">Status</span>
-                        <span class="h-latency">Price</span>
-                        <span class="h-added">Added</span>
-                        <span class="h-actions"></span>
+    if (state.sites.length === 0) {
+        els.siteList.innerHTML = '<div class="list-item" style="color:var(--text-dim);">No sites uploaded yet</div>';
+        els.liveSiteCount.textContent = '0';
+        return;
+    }
+    
+    let html = `
+        <div class="list-header">
+            <span class="col-num">#</span>
+            <span class="col-left">Site URL</span>
+            <span class="col-right">
+                <span class="h-status">Product</span>
+                <span class="h-latency">Price</span>
+                <span class="h-added">Added</span>
+                <span class="h-actions"></span>
+            </span>
+        </div>
+    `;
+    
+    state.sites.forEach((s, index) => {
+        let siteUrl = s.url || s;
+        let status = s.status || 'ALIVE';
+        let price = s.price || '0.00';
+        let product = s.product || 'N/A';
+        let added = s.added || new Date().toLocaleDateString();
+        
+        const statusClass = status === 'ALIVE' ? 'status-alive' : 'status-dead';
+        const displayUrl = siteUrl.length > 35 ? siteUrl.slice(0, 35) + '...' : siteUrl;
+        const displayProduct = product.length > 25 ? product.slice(0, 25) + '...' : product;
+        
+        html += `
+            <div class="list-item-row">
+                <span class="row-num">${index + 1}</span>
+                <span class="row-left" title="${siteUrl}">${displayUrl}</span>
+                <span class="row-right">
+                    <span class="r-status ${statusClass}" title="${product}">${displayProduct}</span>
+                    <span class="r-latency">$${price}</span>
+                    <span class="r-added">${added}</span>
+                    <span class="r-actions">
+                        <button class="btn-icon btn-retest" onclick="retestSite(${index})" title="Retest site">🔄</button>
+                        <button class="btn-icon btn-remove" onclick="removeSite(${index})" title="Remove site">❌</button>
                     </span>
-                </div>
-            `;
-            
-            state.sites.forEach((s, index) => {
-                let siteUrl = s;
-                let status = 'ALIVE';
-                let price = '0.00';
-                let added = new Date().toLocaleDateString();
-                
-                if (typeof s === 'object') {
-                    siteUrl = s.url || s;
-                    status = s.status || 'ALIVE';
-                    price = s.price || '0.00';
-                    added = s.added || new Date().toLocaleDateString();
-                }
-                
-                const statusClass = status === 'ALIVE' ? 'status-alive' : 'status-dead';
-                const displayUrl = siteUrl.length > 40 ? siteUrl.slice(0, 40) + '...' : siteUrl;
-                
-                html += `
-                    <div class="list-item-row">
-                        <span class="row-num">${index + 1}</span>
-                        <span class="row-left" title="${siteUrl}">${displayUrl}</span>
-                        <span class="row-right">
-                            <span class="r-status ${statusClass}">${status}</span>
-                            <span class="r-latency">$${price}</span>
-                            <span class="r-added">${added}</span>
-                            <span class="r-actions">
-                                <button class="btn-icon btn-retest" onclick="retestSite(${index})" title="Retest site">🔄</button>
-                                <button class="btn-icon btn-remove" onclick="removeSite(${index})" title="Remove site">❌</button>
-                            </span>
-                        </span>
-                    </div>
-                `;
-            });
-            
-            els.siteList.innerHTML = html;
-            els.liveSiteCount.textContent = state.sites.length;
-        }
+                </span>
+            </div>
+        `;
+    });
+    
+    els.siteList.innerHTML = html;
+    els.liveSiteCount.textContent = state.sites.length;
+}
 
         // ===== RENDER PROXIES =====
         function renderProxies() {
@@ -1776,30 +1771,39 @@
         }
 
         async function retestSite(index) {
-            const site = state.sites[index];
-            if (!site) return;
-            
-            if (state.proxies.length === 0) {
-                alert('❌ No proxies available to test!');
-                return;
-            }
-            
-            const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
-            logDebug(`🔄 Retesting site: ${site}`, 'info');
-            const result = await testSiteWithPrice(site, proxy);
-            
-            if (result.status === 'alive') {
-                state.sites[index] = { url: site, status: 'ALIVE', price: result.price.toFixed(2), added: new Date().toLocaleDateString() };
-                logDebug(`✅ Site ALIVE: ${site} - $${result.price.toFixed(2)}`, 'success');
-                alert('✅ Site is ALIVE! Price: $' + result.price.toFixed(2));
-            } else {
-                state.sites[index] = { url: site, status: 'DEAD', price: '0.00', added: new Date().toLocaleDateString() };
-                logDebug(`❌ Site DEAD: ${site}`, 'error');
-                alert('❌ Site is DEAD!');
-            }
-            renderSites();
-            updateStats();
-        }
+    const site = state.sites[index];
+    if (!site) return;
+    
+    if (state.proxies.length === 0) {
+        alert('❌ No proxies available to test!');
+        return;
+    }
+    
+    const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
+    const siteUrl = typeof site === 'object' ? site.url : site;
+    
+    logDebug(`🔄 Retesting site: ${siteUrl}`, 'info');
+    const result = await testSiteWithPrice(siteUrl, proxy);
+    
+    if (result.status === 'alive' && result.product) {
+        state.sites[index] = {
+            url: siteUrl,
+            status: 'ALIVE',
+            price: result.price.toFixed(2),
+            product: result.product,
+            gateway: result.gateway || 'Shopify Payments',
+            added: new Date().toLocaleDateString()
+        };
+        logDebug(`✅ Site ALIVE: ${siteUrl} - ${result.product} - $${result.price.toFixed(2)}`, 'success');
+        alert(`✅ Site is ALIVE!\nProduct: ${result.product}\nPrice: $${result.price.toFixed(2)}`);
+    } else {
+        state.sites.splice(index, 1);
+        logDebug(`❌ Site DEAD or NO PRODUCT: ${siteUrl}`, 'error');
+        alert('❌ Site is DEAD or has NO PRODUCT!');
+    }
+    renderSites();
+    updateStats();
+}
 
         // ===== PROXY ACTIONS =====
         function removeProxy(index) {
@@ -2139,51 +2143,82 @@
         // ================================================================
         // 🔥 FIXED: TEST SITE WITH PRICE - Handles objects
         // ================================================================
-        async function testSiteWithPrice(site, proxy) {
-            // 🔥 FIX: Handle site as object or string
-            if (typeof site === 'object' && site !== null) {
-                site = site.url || site.toString();
+       async function testSiteWithPrice(site, proxy) {
+    if (typeof site === 'object' && site !== null) {
+        site = site.url || site.toString();
+    }
+    if (typeof site !== 'string') {
+        site = String(site);
+    }
+    
+    try {
+        if (!site.startsWith('http')) site = 'https://' + site;
+        
+        let proxyStr = proxy;
+        if (proxy) {
+            if (typeof proxy === 'object' && proxy !== null) {
+                proxyStr = proxy.proxy || proxy.toString();
             }
-            if (typeof site !== 'string') {
-                site = String(site);
+            if (typeof proxyStr !== 'string') {
+                proxyStr = String(proxyStr);
             }
-            
-            try {
-                if (!site.startsWith('http')) site = 'https://' + site;
-                
-                let proxyStr = proxy;
-                if (proxy) {
-                    if (typeof proxy === 'object' && proxy !== null) {
-                        proxyStr = proxy.proxy || proxy.toString();
-                    }
-                    if (typeof proxyStr !== 'string') {
-                        proxyStr = String(proxyStr);
-                    }
-                    const proxyParts = proxyStr.split(':');
-                    if (proxyParts.length === 4) {
-                        proxyStr = `${proxyParts[0]}:${proxyParts[1]}:${proxyParts[2]}:${proxyParts[3]}`;
-                    } else if (proxyParts.length === 2) {
-                        proxyStr = `${proxyParts[0]}:${proxyParts[1]}`;
-                    }
-                }
-                if (!proxyStr) proxyStr = CONFIG.DEFAULT_PROXY;
-                
-                const apiBase = CONFIG.API_SERVERS[Math.floor(Math.random() * CONFIG.API_SERVERS.length)];
-                const url = `${apiBase}/check?site=${site}&key=${CONFIG.CHECKER_API_KEY}&proxy=${encodeURIComponent(proxyStr)}`;
-                const response = await fetch(url, {
-                    headers: { 'User-Agent': CONFIG.ANDROID_UA, 'Accept': 'application/json' }
-                });
-                if (!response.ok) return { site: site, status: 'dead', price: 0 };
-                const raw = await response.json();
-                if (raw.valid === true) {
-                    const priceValue = getPriceFromResponse(raw);
-                    return { site: site, status: 'alive', price: priceValue };
-                } else if (raw.valid === false) {
-                    return { site: site, status: 'dead', price: 0 };
-                }
-                return { site: site, status: 'dead', price: 0 };
-            } catch { return { site: site, status: 'dead', price: 0 }; }
+            const proxyParts = proxyStr.split(':');
+            if (proxyParts.length === 4) {
+                proxyStr = `${proxyParts[0]}:${proxyParts[1]}:${proxyParts[2]}:${proxyParts[3]}`;
+            } else if (proxyParts.length === 2) {
+                proxyStr = `${proxyParts[0]}:${proxyParts[1]}`;
+            }
         }
+        if (!proxyStr) proxyStr = CONFIG.DEFAULT_PROXY;
+        
+        const testCard = "4111111111111111|12|26|123";
+        const apiBase = CONFIG.API_SERVERS[Math.floor(Math.random() * CONFIG.API_SERVERS.length)];
+        const url = `${apiBase}/check?site=${site}&key=${CONFIG.CHECKER_API_KEY}&proxy=${encodeURIComponent(proxyStr)}&cc=${testCard}`;
+        
+        logDebug(`🔍 Testing site: ${site}`, 'info');
+        const response = await fetch(url, {
+            headers: { 'User-Agent': CONFIG.ANDROID_UA, 'Accept': 'application/json' }
+        });
+        
+        if (!response.ok) {
+            logDebug(`❌ Site test failed: HTTP ${response.status}`, 'error');
+            return { site: site, status: 'dead', price: 0, product: null };
+        }
+        
+        const raw = await response.json();
+        logDebug(`📄 Site response: ${JSON.stringify(raw).substring(0, 150)}`, 'raw');
+        
+        // ✅ CHECK FOR PRODUCT - if valid and has product
+        if (raw.valid === true) {
+            const product = raw.product || raw.Product || null;
+            const price = raw.price || raw.Price || 0;
+            
+            // ✅ ONLY ADD IF PRODUCT EXISTS
+            if (product && product !== 'null' && product !== 'undefined' && product.trim() !== '') {
+                logDebug(`✅ Site ALIVE with product: ${product} - $${price}`, 'success');
+                return {
+                    site: site,
+                    status: 'alive',
+                    price: parseFloat(price) || 0,
+                    product: product,
+                    gateway: raw.gate || raw.Gate || 'Shopify Payments',
+                    card_response: raw.card_response || raw.Response || ''
+                };
+            } else {
+                logDebug(`⚠️ Site has NO product: ${site}`, 'warning');
+                return { site: site, status: 'dead', price: 0, product: null };
+            }
+        } else if (raw.valid === false) {
+            logDebug(`❌ Site is dead: ${site}`, 'error');
+            return { site: site, status: 'dead', price: 0, product: null };
+        }
+        
+        return { site: site, status: 'dead', price: 0, product: null };
+    } catch (error) {
+        logDebug(`❌ Site test error: ${error.message}`, 'error');
+        return { site: site, status: 'dead', price: 0, product: null };
+    }
+}
 
         // ================================================================
         // PROGRESS FILTERS
@@ -2762,50 +2797,102 @@
         // SITE MANAGER
         // ================================================================
 
-        els.uploadSitesBtn.addEventListener('click', function() {
-            const file = els.siteFileInput.files[0];
-            if (!file) { alert('Please select a .txt file'); return; }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const urls = e.target.result.split('\n').map(u => u.trim()).filter(u => u);
-                const newSites = urls.map(url => ({
+        els.uploadSitesBtn.addEventListener('click', async function() {
+    const file = els.siteFileInput.files[0];
+    if (!file) { alert('Please select a .txt file'); return; }
+    if (state.proxies.length === 0) { alert('❌ No proxies available!'); return; }
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const urls = e.target.result.split('\n').map(u => u.trim()).filter(u => u);
+        const statusMsg = await bot.sendMessage(alert, `🔄 Checking ${urls.length} sites for products...`);
+        
+        const aliveSites = [];
+        let checked = 0;
+        
+        for (const url of urls) {
+            const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
+            const result = await testSiteWithPrice(url, proxy);
+            checked++;
+            
+            if (result.status === 'alive' && result.product) {
+                aliveSites.push({
                     url: url,
                     status: 'ALIVE',
-                    price: '0.00',
+                    price: result.price.toFixed(2),
+                    product: result.product,
+                    gateway: result.gateway || 'Shopify Payments',
                     added: new Date().toLocaleDateString()
-                }));
-                state.sites = [...state.sites, ...newSites];
-                state.sites = [...new Map(state.sites.map(item => [item.url, item])).values()];
-                renderSites();
-                updateStats();
-                logDebug(`🌐 Added ${urls.length} sites`, 'info');
-                alert(`✅ ${urls.length} sites added! Total: ${state.sites.length}`);
-                els.siteFileInput.value = '';
-            };
-            reader.readAsText(file);
-        });
+                });
+                logDebug(`✅ Added site with product: ${url} - ${result.product}`, 'success');
+            } else {
+                logDebug(`❌ Skipped (no product): ${url}`, 'warning');
+            }
+            
+            // Update progress (you can show this in debug or a status bar)
+            if (checked % 5 === 0 || checked === urls.length) {
+                logDebug(`📊 Progress: ${checked}/${urls.length} - ${aliveSites.length} added`, 'info');
+            }
+        }
 
-        els.addManualSitesBtn.addEventListener('click', function() {
-            const text = els.manualSites.value;
-            if (!text.trim()) { alert('Please paste some sites'); return; }
-            const urls = text.split('\n').map(u => u.trim()).filter(u => u);
-            const newSites = urls.map(url => ({
+        state.sites = [...state.sites, ...aliveSites];
+        state.sites = [...new Map(state.sites.map(item => [item.url, item])).values()];
+        renderSites();
+        updateStats();
+        
+        logDebug(`🌐 Added ${aliveSites.length} sites with products from file (${urls.length - aliveSites.length} skipped)`, 'info');
+        alert(`✅ ${aliveSites.length} sites added with products!\n${urls.length - aliveSites.length} sites skipped (no product).`);
+        els.siteFileInput.value = '';
+    };
+    reader.readAsText(file);
+});
+       els.addManualSitesBtn.addEventListener('click', async function() {
+    const text = els.manualSites.value;
+    if (!text.trim()) { alert('Please paste some sites'); return; }
+    if (state.proxies.length === 0) { alert('❌ No proxies available!'); return; }
+
+    const urls = text.split('\n').map(u => u.trim()).filter(u => u);
+    const statusMsg = await bot.sendMessage(alert, `🔄 Checking ${urls.length} sites for products...`);
+    
+    const aliveSites = [];
+    let checked = 0;
+    
+    for (const url of urls) {
+        const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
+        const result = await testSiteWithPrice(url, proxy);
+        checked++;
+        
+        if (result.status === 'alive' && result.product) {
+            aliveSites.push({
                 url: url,
                 status: 'ALIVE',
-                price: '0.00',
+                price: result.price.toFixed(2),
+                product: result.product,
+                gateway: result.gateway || 'Shopify Payments',
                 added: new Date().toLocaleDateString()
-            }));
-            state.sites = [...state.sites, ...newSites];
-            state.sites = [...new Map(state.sites.map(item => [item.url, item])).values()];
-            renderSites();
-            updateStats();
-            logDebug(`🌐 Added ${urls.length} manual sites`, 'info');
-            alert(`✅ ${urls.length} sites added! Total: ${state.sites.length}`);
-            els.manualSites.value = '';
-        });
+            });
+            logDebug(`✅ Added site with product: ${url} - ${result.product}`, 'success');
+        } else {
+            logDebug(`❌ Skipped (no product): ${url}`, 'warning');
+        }
+        
+        if (checked % 5 === 0 || checked === urls.length) {
+            logDebug(`📊 Progress: ${checked}/${urls.length} - ${aliveSites.length} added`, 'info');
+        }
+    }
 
+    state.sites = [...state.sites, ...aliveSites];
+    state.sites = [...new Map(state.sites.map(item => [item.url, item])).values()];
+    renderSites();
+    updateStats();
+    
+    logDebug(`🌐 Added ${aliveSites.length} manual sites with products (${urls.length - aliveSites.length} skipped)`, 'info');
+    alert(`✅ ${aliveSites.length} sites added with products!\n${urls.length - aliveSites.length} sites skipped (no product).`);
+    els.manualSites.value = '';
+});
+        
         // 🔥 FIXED: Check sites and remove dead ones IMMEDIATELY
-       els.checkSitesBtn.addEventListener('click', async function() {
+      els.checkSitesBtn.addEventListener('click', async function() {
     if (state.sites.length === 0) { alert('No sites to check!'); return; }
     if (state.proxies.length === 0) { alert('❌ No proxies available!'); return; }
 
@@ -2815,9 +2902,9 @@
 
     const total = state.sites.length;
     let checked = 0, alive = 0, dead = 0;
+    const aliveSites = [];
     
-    // 🔥 FIX: Loop BACKWARDS so we can remove from the SAME list safely
-    for (let i = state.sites.length - 1; i >= 0; i--) {
+    for (let i = 0; i < state.sites.length; i++) {
         const site = state.sites[i];
         const siteUrl = typeof site === 'object' ? site.url : site;
         const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
@@ -2825,15 +2912,20 @@
         
         checked++;
         
-        if (result.status === 'alive') {
+        if (result.status === 'alive' && result.product) {
             alive++;
-            // ✅ Site is alive - keep it in the list (do nothing)
+            aliveSites.push({
+                url: siteUrl,
+                status: 'ALIVE',
+                price: result.price.toFixed(2),
+                product: result.product,
+                gateway: result.gateway || 'Shopify Payments',
+                added: new Date().toLocaleDateString()
+            });
+            logDebug(`✅ Site ALIVE: ${siteUrl} - ${result.product}`, 'success');
         } else {
             dead++;
-            // 🔥 IMMEDIATELY REMOVE the dead site from the SAME list
-            state.sites.splice(i, 1);
-            renderSites();   // Update UI immediately
-            updateStats();    // Update stats immediately
+            logDebug(`❌ Site DEAD or NO PRODUCT: ${siteUrl}`, 'error');
         }
         
         const pct = Math.round((checked / total) * 100);
@@ -2846,7 +2938,8 @@
         await new Promise(r => setTimeout(r, 30));
     }
 
-    // Final update - state.sites already has only alive sites
+    // ✅ REPLACE with ONLY alive sites that have products
+    state.sites = aliveSites;
     renderSites();
     updateStats();
 
@@ -2860,10 +2953,9 @@
 
     this.disabled = false;
     this.textContent = '🔍 Check & Remove Dead';
-    logDebug(`✅ Site check: ${alive} alive, ${dead} removed from original list`, 'success');
-    alert(`✅ Done! ${alive} sites alive, ${dead} removed from your list.`);
+    logDebug(`✅ Site check: ${alive} alive (with products), ${dead} removed`, 'success');
+    alert(`✅ Done! ${alive} sites alive (with products), ${dead} removed.`);
 });
-
         els.clearSitesBtn.addEventListener('click', function() {
             if (state.sites.length === 0) { alert('No sites to clear'); return; }
             showConfirm('⚠️ Delete All Sites', `Delete all ${state.sites.length} sites?`, function(confirmed) {
