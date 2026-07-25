@@ -2110,7 +2110,7 @@
         // ================================================================
         // 🔥 FIXED: CHECK CARD WITH RETRY - Handles objects
         // ================================================================
-        async function checkCardWithRetry(card, maxRetries = 3) {
+        async function checkCardWithRetry(card, maxRetries = 5) {
             if (state.sites.length === 0) {
                 logDebug(`❌ No sites available for ${maskCard(card)}`, 'error');
                 return { status: 'Site Error', message: 'No sites available', card: card };
@@ -2315,7 +2315,7 @@
                 const results = await Promise.all(batch.map(async (line) => {
                     const cardData = parseCardLine(line);
                     if (!cardData) return null;
-                    const result = await checkCardWithRetry(cardData.raw, 3);
+                    const result = await checkCardWithRetry(cardData.raw, 5);
                     if (result.card && !result.card.includes('|')) {
                         const parts = result.card.split('|');
                         if (parts.length === 4) result.card = parts[0];
@@ -2513,7 +2513,7 @@
                 const results = await Promise.all(batch.map(async (line) => {
                     const cardData = parseCardLine(line);
                     if (!cardData) return null;
-                    const result = await checkCardWithRetry(cardData.raw, 3);
+                    const result = await checkCardWithRetry(cardData.raw, 5);
                     if (result.card && !result.card.includes('|')) {
                         const parts = result.card.split('|');
                         if (parts.length === 4) result.card = parts[0];
