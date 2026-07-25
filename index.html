@@ -2797,15 +2797,18 @@
         // SITE MANAGER
         // ================================================================
 
-        els.uploadSitesBtn.addEventListener('click', async function() {
+       els.uploadSitesBtn.addEventListener('click', async function() {
     const file = els.siteFileInput.files[0];
     if (!file) { alert('Please select a .txt file'); return; }
-    if (state.proxies.length === 0) { alert('❌ No proxies available!'); return; }
+    if (state.proxies.length === 0) { alert('❌ No proxies available! Please add proxies first.'); return; }
 
     const reader = new FileReader();
     reader.onload = async function(e) {
         const urls = e.target.result.split('\n').map(u => u.trim()).filter(u => u);
-        const statusMsg = await bot.sendMessage(alert, `🔄 Checking ${urls.length} sites for products...`);
+        if (urls.length === 0) { alert('❌ No URLs found in file!'); return; }
+        
+        logDebug(`📁 Processing ${urls.length} sites from file...`, 'info');
+        alert(`🔄 Checking ${urls.length} sites for products...`);
         
         const aliveSites = [];
         let checked = 0;
@@ -2829,7 +2832,6 @@
                 logDebug(`❌ Skipped (no product): ${url}`, 'warning');
             }
             
-            // Update progress (you can show this in debug or a status bar)
             if (checked % 5 === 0 || checked === urls.length) {
                 logDebug(`📊 Progress: ${checked}/${urls.length} - ${aliveSites.length} added`, 'info');
             }
@@ -2849,10 +2851,13 @@
        els.addManualSitesBtn.addEventListener('click', async function() {
     const text = els.manualSites.value;
     if (!text.trim()) { alert('Please paste some sites'); return; }
-    if (state.proxies.length === 0) { alert('❌ No proxies available!'); return; }
+    if (state.proxies.length === 0) { alert('❌ No proxies available! Please add proxies first.'); return; }
 
     const urls = text.split('\n').map(u => u.trim()).filter(u => u);
-    const statusMsg = await bot.sendMessage(alert, `🔄 Checking ${urls.length} sites for products...`);
+    if (urls.length === 0) { alert('❌ No valid URLs found!'); return; }
+    
+    logDebug(`📝 Processing ${urls.length} manual sites...`, 'info');
+    alert(`🔄 Checking ${urls.length} sites for products...`);
     
     const aliveSites = [];
     let checked = 0;
